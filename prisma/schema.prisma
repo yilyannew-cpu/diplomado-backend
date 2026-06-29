@@ -1,0 +1,66 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  cliente
+  admin
+  domiciliario
+  superadmin
+}
+
+enum UserStatus {
+  Activo
+  Pendiente
+  Suspendido
+  Rechazado
+}
+
+enum RestaurantStatus {
+  Activo
+  Pendiente
+  Rechazado
+}
+
+model User {
+  id            String     @id @default(uuid())
+  name          String
+  email         String     @unique
+  password_hash String
+  role          Role
+  phone         String?
+  vehicle       String?
+  document_id   String?
+  avatar        String?
+  status        UserStatus @default(Pendiente)
+  restaurant_id String?
+  restaurant    Restaurant? @relation(fields: [restaurant_id], references: [id])
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  @@map("users")
+}
+
+model Restaurant {
+  id               String           @id @default(uuid())
+  name             String
+  tagline          String?
+  city             String
+  address          String
+  rating           Float            @default(0)
+  delivery_minutes Int              @default(30)
+  accent           String           @default("#4f46e5")
+  initials         String
+  status           RestaurantStatus @default(Pendiente)
+  users            User[]
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+
+  @@map("restaurants")
+}

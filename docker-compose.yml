@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ffcore-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ffcore
+      POSTGRES_PASSWORD: ffcore
+      POSTGRES_DB: ffcore
+    ports:
+      - "5432:5432"
+    volumes:
+      - ffcore_pgdata:/var/lib/postgresql/data
+
+volumes:
+  ffcore_pgdata:

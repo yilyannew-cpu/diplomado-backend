@@ -1,0 +1,88 @@
+import { User, PublicUser } from '../../domain/entities/User';
+import { Restaurant } from '../../domain/entities/Restaurant';
+import { Role, UserStatus } from '../../domain/enums';
+
+export interface CreateUserData {
+  name: string;
+  email: string;
+  passwordHash: string;
+  role: Role;
+  phone?: string | null;
+  vehicle?: string | null;
+  documentId?: string | null;
+  status?: UserStatus;
+  restaurantId?: string | null;
+}
+
+export interface UpdateUserData {
+  name?: string;
+  email?: string;
+  phone?: string | null;
+  vehicle?: string | null;
+  documentId?: string | null;
+  role?: Role;
+  status?: UserStatus;
+  restaurantId?: string | null;
+}
+
+export interface ListUsersFilters {
+  role?: Role;
+  status?: UserStatus;
+  q?: string;
+}
+
+export interface PendingUserWithRestaurant extends PublicUser {
+  restaurant?: {
+    id: string;
+    name: string;
+    city: string;
+    address: string;
+    status: string;
+  } | null;
+}
+
+export interface IUserRepository {
+  findById(id: string): Promise<User | null>;
+  findByEmail(email: string): Promise<User | null>;
+  emailExists(email: string): Promise<boolean>;
+  create(data: CreateUserData): Promise<User>;
+  update(id: string, data: UpdateUserData): Promise<User>;
+  listPending(): Promise<PendingUserWithRestaurant[]>;
+  list(filters: ListUsersFilters): Promise<PublicUser[]>;
+}
+
+export interface CreateRestaurantData {
+  name: string;
+  tagline?: string | null;
+  city: string;
+  address: string;
+  deliveryMinutes?: number;
+  initials: string;
+  status?: import('../../domain/enums').RestaurantStatus;
+}
+
+export interface IRestaurantRepository {
+  findById(id: string): Promise<Restaurant | null>;
+  create(data: CreateRestaurantData): Promise<Restaurant>;
+  updateStatus(id: string, status: import('../../domain/enums').RestaurantStatus): Promise<Restaurant>;
+  createWithAdminUser(
+    restaurantData: CreateRestaurantData,
+    userData: Omit<CreateUserData, 'restaurantId'>
+  ): Promise<{ user: User; restaurant: Restaurant }>;
+}
+
+export interface TokenPayload {
+  sub: string;
+  email: string;
+  role: Role;
+}
+
+export interface ITokenService {
+  sign(payload: TokenPayload): string;
+  verify(token: string): TokenPayload;
+}
+
+export interface IHashService {
+  hash(plain: string): Promise<string>;
+  compare(plain: string, hash: string): Promise<boolean>;
+}

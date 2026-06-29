@@ -1,0 +1,33 @@
+import { PublicUser } from '../../../domain/entities/User';
+
+export function serializeUser(user: PublicUser) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    phone: user.phone,
+    vehicle: user.vehicle,
+    document_id: user.documentId,
+    avatar: user.avatar,
+    restaurant_id: user.restaurantId,
+    status: user.status,
+    created_at: user.createdAt.toISOString(),
+    updated_at: user.updatedAt.toISOString(),
+  };
+}
+
+/** Respuesta de login / me — sin campos internos ni timestamps */
+export function serializeUserPublic(user: PublicUser) {
+  const base: Record<string, unknown> = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    phone: user.phone,
+    status: user.status,
+  };
+  if (user.restaurantId) base.restaurant_id = user.restaurantId;
+  if (user.vehicle) base.vehicle = user.vehicle;
+  return base;
+}
