@@ -3,7 +3,7 @@ services:
     name: ffcore-api
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build:render
+    buildCommand: npm install --include=dev && npm run build:render
     startCommand: npm start
     healthCheckPath: /api/v1/health
     envVars:
