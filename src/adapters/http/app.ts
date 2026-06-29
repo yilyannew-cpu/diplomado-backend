@@ -9,17 +9,34 @@ export function createApp() {
 
   const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
     .split(',')
-    .map((o) => o.trim());
+    .map((o) => o.trim())
+    .filter(Boolean);
 
   app.use(
     cors({
-      origin: corsOrigins,
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (corsOrigins.includes(origin)) return callback(null, true);
+        // Permite previews y produccion en Vercel
+        if (origin.endsWith('.vercel.app')) return callback(null, true);
+        callback(null, false);
+      },
       methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Authorization', 'Content-Type'],
     })
   );
 
   app.use(express.json());
+
+  app.get('/', (_req, res) => {
+    res.json({
+      service: 'ffcore-api',
+      version: '1.0.0',
+      status: 'ok',
+      health: '/api/v1/health',
+      docs: 'FFCore API v1 - Auth y Registros',
+    });
+  });
 
   app.get('/api/v1/health', (_req, res) => {
     res.json({
