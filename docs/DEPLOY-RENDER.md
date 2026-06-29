@@ -69,8 +69,8 @@ git push -u origin main
 | **Region** | Oregon (US West) o el más cercano |
 | **Branch** | `main` |
 | **Runtime** | `Node` |
-| **Build Command** | `npm install && npm run build` |
-| **Start Command** | `npm run start:render` |
+| **Build Command** | `npm install --include=dev && npm run build:render` |
+| **Start Command** | `npm start` |
 | **Instance Type** | **Free** |
 
 4. **Environment Variables** (Add Environment Variable):
@@ -169,7 +169,17 @@ El repo incluye `render.yaml`. En Render:
 
 ## Solución de problemas
 
-### Deploy falla en build
+### Deploy falla en build (`Could not find a declaration file for module 'express'`)
+
+Render con `NODE_ENV=production` no instala `devDependencies` por defecto. El build necesita TypeScript y `@types/*`.
+
+**Solución:** Build Command debe ser:
+
+```bash
+npm install --include=dev && npm run build:render
+```
+
+### Deploy falla en build (otros)
 
 - Revisa logs en Render → **Logs**
 - Verifica que `package.json` tenga `"build": "prisma generate && tsc"`
