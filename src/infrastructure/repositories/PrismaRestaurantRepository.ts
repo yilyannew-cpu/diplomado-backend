@@ -14,6 +14,13 @@ export class PrismaRestaurantRepository implements IRestaurantRepository {
     return record ? mapRestaurant(record) : null;
   }
 
+  async listAll() {
+    const records = await prisma.restaurant.findMany({
+      orderBy: { created_at: 'desc' }
+    });
+    return records.map(mapRestaurant);
+  }
+
   async create(data: CreateRestaurantData) {
     const record = await prisma.restaurant.create({
       data: {

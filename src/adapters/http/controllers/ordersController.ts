@@ -1,10 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
+import { Server as SocketIOServer } from 'socket.io';
 import { container } from '../../../container';
 import { OrderStatus } from '../../../domain/enums';
 
 export async function createOrderController(req: Request, res: Response, next: NextFunction) {
   try {
     const order = await container.createOrderUseCase.execute(req.body);
+    const io = req.app.get('io') as SocketIOServer;
+    if (io) io.emit('new_order', order);
     res.status(201).json(order);
   } catch (error) {
     next(error);
@@ -26,6 +29,8 @@ export async function updateOrderStatusController(req: Request, res: Response, n
       req.params.id,
       req.body.status as OrderStatus
     );
+    const io = req.app.get('io') as SocketIOServer;
+    if (io) io.emit('order_status_changed', order);
     res.json(order);
   } catch (error) {
     next(error);
@@ -38,6 +43,8 @@ export async function assignCourierController(req: Request, res: Response, next:
       req.params.id,
       req.body.courierId
     );
+    const io = req.app.get('io') as SocketIOServer;
+    if (io) io.emit('order_status_changed', order);
     res.json(order);
   } catch (error) {
     next(error);

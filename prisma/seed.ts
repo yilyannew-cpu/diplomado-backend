@@ -18,7 +18,58 @@ async function main() {
       rating: 4.8,
       delivery_minutes: 25,
       accent: '#4f46e5',
-      initials: 'BC',
+      initials: 'FC',
+      status: RestaurantStatus.Activo,
+    },
+  });
+
+  const paisaPollo = await prisma.restaurant.upsert({
+    where: { id: 'rest-paisapollo' },
+    update: {},
+    create: {
+      id: 'rest-paisapollo',
+      name: 'Paisa Pollo',
+      tagline: 'Pollo crocante & buffalo',
+      city: 'Cúcuta · Centro',
+      address: 'Avenida 4 #11-30 Centro',
+      rating: 4.6,
+      delivery_minutes: 30,
+      accent: '#d97706',
+      initials: 'PP',
+      status: RestaurantStatus.Activo,
+    },
+  });
+
+  const verdebrasa = await prisma.restaurant.upsert({
+    where: { id: 'rest-verdebrasa' },
+    update: {},
+    create: {
+      id: 'rest-verdebrasa',
+      name: 'Verde & Brasa',
+      tagline: 'Cocina vegetal a la brasa',
+      city: 'Cúcuta · Atalaya',
+      address: 'Calle 5 #0-10 Atalaya',
+      rating: 4.7,
+      delivery_minutes: 35,
+      accent: '#16a34a',
+      initials: 'VB',
+      status: RestaurantStatus.Activo,
+    },
+  });
+
+  const dulcecaribe = await prisma.restaurant.upsert({
+    where: { id: 'rest-dulcecaribe' },
+    update: {},
+    create: {
+      id: 'rest-dulcecaribe',
+      name: 'Dulce Caribe',
+      tagline: 'Postres y bebidas tropicales',
+      city: 'Cúcuta · San Luis',
+      address: 'Calle 1 #3-15 San Luis',
+      rating: 4.9,
+      delivery_minutes: 20,
+      accent: '#db2777',
+      initials: 'DC',
       status: RestaurantStatus.Activo,
     },
   });
@@ -151,7 +202,17 @@ async function main() {
       description: 'Pollo crocante, salsa buffalo, blue cheese y apio.',
       image: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?auto=format&fit=crop&w=800&q=80',
       available: false, // Este debe estar oculto en frontend
-      restaurant_id: restaurant.id,
+      restaurant_id: paisaPollo.id,
+    },
+    {
+      id: 'prod-04',
+      name: 'Veggie Supreme',
+      price: 22500,
+      category_id: platosId,
+      description: 'Medallón de garbanzo, aguacate, rúgula y mayo de chipotle.',
+      image: 'https://images.unsplash.com/photo-1525059696034-4967a729002e?auto=format&fit=crop&w=800&q=80',
+      available: true,
+      restaurant_id: verdebrasa.id,
     },
     {
       id: 'prod-05',
@@ -164,6 +225,16 @@ async function main() {
       restaurant_id: restaurant.id,
     },
     {
+      id: 'prod-06',
+      name: 'Aros de Cebolla',
+      price: 8900,
+      category_id: acompId,
+      description: 'Cebolla dulce empanizada en panko crocante.',
+      image: 'https://images.unsplash.com/photo-1639024471283-03518883512d?auto=format&fit=crop&w=800&q=80',
+      available: true,
+      restaurant_id: paisaPollo.id,
+    },
+    {
       id: 'prod-07',
       name: 'Limonada de Coco',
       price: 7500,
@@ -171,7 +242,7 @@ async function main() {
       description: 'Receta caribeña con leche de coco fresca.',
       image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=800&q=80',
       available: true,
-      restaurant_id: restaurant.id,
+      restaurant_id: dulcecaribe.id,
     },
     {
       id: 'prod-08',
@@ -181,7 +252,7 @@ async function main() {
       description: 'Brownie tibio con helado de vainilla bourbon.',
       image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80',
       available: true,
-      restaurant_id: restaurant.id,
+      restaurant_id: dulcecaribe.id,
     },
     {
       id: 'prod-09',
@@ -190,6 +261,16 @@ async function main() {
       category_id: adicionesId,
       description: 'Porción adicional de queso cheddar fundido.',
       image: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=800&q=80',
+      available: true,
+      restaurant_id: restaurant.id,
+    },
+    {
+      id: 'prod-10',
+      name: 'Tocino crujiente',
+      price: 4200,
+      category_id: adicionesId,
+      description: 'Dos tiras de tocino ahumado extra crocante.',
+      image: 'https://images.unsplash.com/photo-1528607929212-2636ec44253e?auto=format&fit=crop&w=800&q=80',
       available: true,
       restaurant_id: restaurant.id,
     },
