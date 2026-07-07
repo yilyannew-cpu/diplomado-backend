@@ -74,3 +74,19 @@ export class AssignCourierUseCase {
     return this.orderRepo.assignCourier(orderId, courierId);
   }
 }
+
+export class ListAvailableDeliveriesUseCase {
+  constructor(private orderRepo: IOrderRepository) {}
+
+  async execute() {
+    return this.orderRepo.listAvailableForDelivery();
+  }
+}
+
+export class ListCourierOrdersUseCase {
+  constructor(private orderRepo: IOrderRepository) {}
+
+  async execute(courierId: string) {
+    return this.orderRepo.listByCourier(courierId);
+  }
+}

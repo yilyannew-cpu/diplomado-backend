@@ -43,3 +43,21 @@ export async function assignCourierController(req: Request, res: Response, next:
     next(error);
   }
 }
+
+export async function listAvailableDeliveriesController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const orders = await container.listAvailableDeliveriesUseCase.execute();
+    res.json(orders);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listCourierOrdersController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const orders = await container.listCourierOrdersUseCase.execute(req.params.courierId);
+    res.json(orders);
+  } catch (error) {
+    next(error);
+  }
+}

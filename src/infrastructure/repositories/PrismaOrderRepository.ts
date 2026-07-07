@@ -66,6 +66,24 @@ export class PrismaOrderRepository implements IOrderRepository {
     return mapOrder(record);
   }
 
+  async listAvailableForDelivery() {
+    const records = await prisma.order.findMany({
+      where: { status: 'Listo' },
+      include: { items: true },
+      orderBy: { created_at: 'asc' },
+    });
+    return records.map(mapOrder);
+  }
+
+  async listByCourier(courierId: string) {
+    const records = await prisma.order.findMany({
+      where: { delivery_person_id: courierId },
+      include: { items: true },
+      orderBy: { created_at: 'desc' },
+    });
+    return records.map(mapOrder);
+  }
+
   async countAll() {
     return prisma.order.count();
   }
