@@ -1,7 +1,10 @@
-import { User as PrismaUser, Restaurant as PrismaRestaurant, Role as PrismaRole, UserStatus as PrismaUserStatus, RestaurantStatus as PrismaRestaurantStatus } from '@prisma/client';
+import { User as PrismaUser, Restaurant as PrismaRestaurant, Role as PrismaRole, UserStatus as PrismaUserStatus, RestaurantStatus as PrismaRestaurantStatus, OrderStatus as PrismaOrderStatus, Category as PrismaCategory, Product as PrismaProduct, Order as PrismaOrder, OrderItem as PrismaOrderItem } from '@prisma/client';
 import { User } from '../../../domain/entities/User';
 import { Restaurant } from '../../../domain/entities/Restaurant';
-import { Role, UserStatus, RestaurantStatus } from '../../../domain/enums';
+import { Category } from '../../../domain/entities/Category';
+import { Product, ProductWithCategory } from '../../../domain/entities/Product';
+import { Order, OrderItem } from '../../../domain/entities/Order';
+import { Role, UserStatus, RestaurantStatus, OrderStatus } from '../../../domain/enums';
 
 const roleMap: Record<PrismaRole, Role> = {
   cliente: Role.CLIENTE,
@@ -43,6 +46,24 @@ const restaurantStatusToPrisma: Record<RestaurantStatus, PrismaRestaurantStatus>
   [RestaurantStatus.RECHAZADO]: 'Rechazado',
 };
 
+const orderStatusMap: Record<PrismaOrderStatus, OrderStatus> = {
+  Recibido: OrderStatus.RECIBIDO,
+  EnPreparacion: OrderStatus.EN_PREPARACION,
+  Listo: OrderStatus.LISTO,
+  EnCamino: OrderStatus.EN_CAMINO,
+  Entregado: OrderStatus.ENTREGADO,
+  Cancelado: OrderStatus.CANCELADO,
+};
+
+const orderStatusToPrisma: Record<OrderStatus, PrismaOrderStatus> = {
+  [OrderStatus.RECIBIDO]: 'Recibido',
+  [OrderStatus.EN_PREPARACION]: 'EnPreparacion',
+  [OrderStatus.LISTO]: 'Listo',
+  [OrderStatus.EN_CAMINO]: 'EnCamino',
+  [OrderStatus.ENTREGADO]: 'Entregado',
+  [OrderStatus.CANCELADO]: 'Cancelado',
+};
+
 export function mapUser(record: PrismaUser): User {
   return {
     id: record.id,
@@ -78,4 +99,63 @@ export function mapRestaurant(record: PrismaRestaurant): Restaurant {
   };
 }
 
-export { roleToPrisma, statusToPrisma, restaurantStatusToPrisma };
+export function mapCategory(record: PrismaCategory): Category {
+  return {
+    id: record.id,
+    name: record.name,
+    position: record.position,
+  };
+}
+
+export function mapProduct(record: PrismaProduct): Product {
+  return {
+    id: record.id,
+    name: record.name,
+    description: record.description,
+    price: record.price,
+    image: record.image,
+    available: record.available,
+    categoryId: record.category_id,
+    restaurantId: record.restaurant_id,
+    createdAt: record.created_at,
+    updatedAt: record.updated_at,
+  };
+}
+
+export function mapProductWithCategory(record: PrismaProduct & { category: PrismaCategory }): ProductWithCategory {
+  return {
+    ...mapProduct(record),
+    categoryName: record.category.name,
+  };
+}
+
+export function mapOrderItem(record: PrismaOrderItem): OrderItem {
+  return {
+    id: record.id,
+    quantity: record.quantity,
+    unitPrice: record.unit_price,
+    orderId: record.order_id,
+    productId: record.product_id,
+  };
+}
+
+export function mapOrder(record: PrismaOrder & { items: PrismaOrderItem[] }): Order {
+  return {
+    id: record.id,
+    code: record.code,
+    customerName: record.customer_name,
+    address: record.address,
+    phone: record.phone,
+    status: orderStatusMap[record.status],
+    total: record.total,
+    deliveryFee: record.delivery_fee,
+    restaurantId: record.restaurant_id,
+    deliveryPersonId: record.delivery_person_id,
+    items: record.items.map(mapOrderItem),
+    createdAt: record.created_at,
+    updatedAt: record.updated_at,
+  };
+}
+
+export { roleToPrisma, statusToPrisma, restaurantStatusToPrisma, orderStatusToPrisma };
+

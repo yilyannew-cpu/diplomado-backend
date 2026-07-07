@@ -2,19 +2,21 @@ import express from 'express';
 import cors from 'cors';
 import { authRouter } from './routes/authRoutes';
 import { usersRouter } from './routes/usersRoutes';
+import { productsRouter } from './routes/productsRoutes';
+import { ordersRouter } from './routes/ordersRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 export function createApp() {
   const app = express();
 
-  const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+  const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173,http://localhost:8080')
     .split(',')
     .map((o) => o.trim());
 
   app.use(
     cors({
       origin: corsOrigins,
-      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS', 'PUT'],
       allowedHeaders: ['Authorization', 'Content-Type'],
     })
   );
@@ -32,6 +34,8 @@ export function createApp() {
 
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/users', usersRouter);
+  app.use('/api/v1/products', productsRouter);
+  app.use('/api/v1/orders', ordersRouter);
 
   app.use(errorHandler);
 

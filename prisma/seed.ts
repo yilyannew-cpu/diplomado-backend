@@ -99,7 +99,111 @@ async function main() {
     });
   }
 
-  console.log('Seed completado: 1 restaurante + 8 usuarios demo (password: demo)');
+  // --- CATEGORIES & PRODUCTS ---
+  const categories = [
+    { name: 'Platos principales', position: 1 },
+    { name: 'Acompañamientos', position: 2 },
+    { name: 'Bebidas', position: 3 },
+    { name: 'Postres', position: 4 },
+    { name: 'Adiciones', position: 5 },
+  ];
+
+  for (const cat of categories) {
+    await prisma.category.upsert({
+      where: { name: cat.name },
+      update: {},
+      create: cat,
+    });
+  }
+
+  const platosId = (await prisma.category.findUnique({ where: { name: 'Platos principales' } }))!.id;
+  const acompId = (await prisma.category.findUnique({ where: { name: 'Acompañamientos' } }))!.id;
+  const bebidasId = (await prisma.category.findUnique({ where: { name: 'Bebidas' } }))!.id;
+  const postresId = (await prisma.category.findUnique({ where: { name: 'Postres' } }))!.id;
+  const adicionesId = (await prisma.category.findUnique({ where: { name: 'Adiciones' } }))!.id;
+
+  const products = [
+    {
+      id: 'prod-01',
+      name: 'Monster Bacon',
+      price: 24900,
+      category_id: platosId,
+      description: 'Doble carne premium, tocino crujiente y queso cheddar fundido.',
+      image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
+      available: true,
+      restaurant_id: restaurant.id,
+    },
+    {
+      id: 'prod-02',
+      name: 'La Paisa Smash',
+      price: 28500,
+      category_id: platosId,
+      description: 'Carne Angus, chicharrón, plátano maduro y queso costeño.',
+      image: 'https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=800&q=80',
+      available: true,
+      restaurant_id: restaurant.id,
+    },
+    {
+      id: 'prod-03',
+      name: 'Chicken Buffalo',
+      price: 26900,
+      category_id: platosId,
+      description: 'Pollo crocante, salsa buffalo, blue cheese y apio.',
+      image: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?auto=format&fit=crop&w=800&q=80',
+      available: false, // Este debe estar oculto en frontend
+      restaurant_id: restaurant.id,
+    },
+    {
+      id: 'prod-05',
+      name: 'Papas Rústicas',
+      price: 9500,
+      category_id: acompId,
+      description: 'Papas en gajos con piel, sal de mar y aioli de la casa.',
+      image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=800&q=80',
+      available: true,
+      restaurant_id: restaurant.id,
+    },
+    {
+      id: 'prod-07',
+      name: 'Limonada de Coco',
+      price: 7500,
+      category_id: bebidasId,
+      description: 'Receta caribeña con leche de coco fresca.',
+      image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=800&q=80',
+      available: true,
+      restaurant_id: restaurant.id,
+    },
+    {
+      id: 'prod-08',
+      name: 'Brownie de Chocolate',
+      price: 11500,
+      category_id: postresId,
+      description: 'Brownie tibio con helado de vainilla bourbon.',
+      image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80',
+      available: true,
+      restaurant_id: restaurant.id,
+    },
+    {
+      id: 'prod-09',
+      name: 'Queso cheddar extra',
+      price: 3500,
+      category_id: adicionesId,
+      description: 'Porción adicional de queso cheddar fundido.',
+      image: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=800&q=80',
+      available: true,
+      restaurant_id: restaurant.id,
+    },
+  ];
+
+  for (const prod of products) {
+    await prisma.product.upsert({
+      where: { id: prod.id },
+      update: {},
+      create: prod,
+    });
+  }
+
+  console.log('Seed completado: 1 restaurante, 8 usuarios, 5 categorías, 7 productos');
 }
 
 main()
@@ -110,3 +214,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
