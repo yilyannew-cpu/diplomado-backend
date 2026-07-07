@@ -4,6 +4,7 @@ import { OrderStatus } from '../../domain/enums';
 export interface CreateOrderItemData {
   productId: string;
   quantity: number;
+  customizations?: Record<string, any>;
 }
 
 export interface CreateOrderData {
@@ -15,7 +16,7 @@ export interface CreateOrderData {
 }
 
 export interface IOrderRepository {
-  create(data: CreateOrderData & { code: string; total: number; deliveryFee: number; itemsWithPrice: { productId: string; quantity: number; unitPrice: number }[] }): Promise<Order>;
+  create(data: CreateOrderData & { code: string; total: number; deliveryFee: number; itemsWithPrice: { productId: string; quantity: number; unitPrice: number; customizations?: Record<string, any> }[] }): Promise<Order>;
   findByCode(code: string): Promise<Order | null>;
   listByRestaurant(restaurantId: string): Promise<Order[]>;
   updateStatus(id: string, status: OrderStatus): Promise<Order>;

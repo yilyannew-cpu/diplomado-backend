@@ -6,6 +6,7 @@ export interface OrderItem {
   unitPrice: number;
   orderId: string;
   productId: string;
+  customizations?: Record<string, any>;
 }
 
 export interface Order {

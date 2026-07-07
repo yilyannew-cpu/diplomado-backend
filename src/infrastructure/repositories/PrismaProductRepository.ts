@@ -16,7 +16,11 @@ export class PrismaProductRepository implements IProductRepository {
 
     const records = await prisma.product.findMany({
       where,
-      include: { category: true },
+      include: { 
+        category: true,
+        ingredients: { include: { ingredient: true } },
+        modifier_groups: { include: { options: true } }
+      },
       orderBy: { created_at: 'desc' },
     });
 
@@ -26,9 +30,13 @@ export class PrismaProductRepository implements IProductRepository {
   async findById(id: string) {
     const record = await prisma.product.findUnique({
       where: { id },
-      include: { category: true },
+      include: { 
+        category: true,
+        ingredients: { include: { ingredient: true } },
+        modifier_groups: { include: { options: true } }
+      },
     });
-    return record ? mapProductWithCategory(record) : null;
+    return record ? mapProductWithCategory(record as any) : null;
   }
 
   async create(data: CreateProductData) {
@@ -43,7 +51,7 @@ export class PrismaProductRepository implements IProductRepository {
         restaurant_id: data.restaurantId,
       },
     });
-    return mapProduct(record);
+    return mapProduct(record as any);
   }
 
   async update(id: string, data: UpdateProductData) {
@@ -58,7 +66,7 @@ export class PrismaProductRepository implements IProductRepository {
         category_id: data.categoryId,
       },
     });
-    return mapProduct(record);
+    return mapProduct(record as any);
   }
 
   async toggleAvailability(id: string) {
@@ -69,6 +77,6 @@ export class PrismaProductRepository implements IProductRepository {
       where: { id },
       data: { available: !current.available },
     });
-    return mapProduct(record);
+    return mapProduct(record as any);
   }
 }
