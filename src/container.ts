@@ -30,7 +30,9 @@ import {
   CreateOrderUseCase,
   ListRestaurantOrdersUseCase,
   UpdateOrderStatusUseCase,
-  AssignCourierUseCase
+  AssignCourierUseCase,
+  ListAvailableDeliveriesUseCase,
+  ListCourierOrdersUseCase
 } from './application/use-cases/orders/OrderUseCases';
 
 const userRepository = new PrismaUserRepository();
@@ -77,4 +79,6 @@ export const container = {
   listRestaurantOrdersUseCase: new ListRestaurantOrdersUseCase(orderRepository),
   updateOrderStatusUseCase: new UpdateOrderStatusUseCase(orderRepository),
   assignCourierUseCase: new AssignCourierUseCase(orderRepository),
+  listAvailableDeliveriesUseCase: new ListAvailableDeliveriesUseCase(orderRepository),
+  listCourierOrdersUseCase: new ListCourierOrdersUseCase(orderRepository),
 };

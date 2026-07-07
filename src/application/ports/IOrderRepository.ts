@@ -21,5 +21,7 @@ export interface IOrderRepository {
   listByRestaurant(restaurantId: string): Promise<Order[]>;
   updateStatus(id: string, status: OrderStatus): Promise<Order>;
   assignCourier(id: string, courierId: string): Promise<Order>;
+  listAvailableForDelivery(): Promise<Order[]>;
+  listByCourier(courierId: string): Promise<Order[]>;
   countAll(): Promise<number>;
 }
