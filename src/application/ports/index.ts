@@ -63,6 +63,7 @@ export interface CreateRestaurantData {
 
 export interface IRestaurantRepository {
   findById(id: string): Promise<Restaurant | null>;
+  listAll(): Promise<Restaurant[]>;
   create(data: CreateRestaurantData): Promise<Restaurant>;
   updateStatus(id: string, status: import('../../domain/enums').RestaurantStatus): Promise<Restaurant>;
   createWithAdminUser(

@@ -4,6 +4,7 @@ import { authRouter } from './routes/authRoutes';
 import { usersRouter } from './routes/usersRoutes';
 import { productsRouter } from './routes/productsRoutes';
 import { ordersRouter } from './routes/ordersRoutes';
+import { restaurantsRouter } from './routes/restaurantsRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 export function createApp() {
@@ -34,6 +35,7 @@ export function createApp() {
 
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/users', usersRouter);
+  app.use('/api/v1/restaurants', restaurantsRouter);
   app.use('/api/v1/products', productsRouter);
   app.use('/api/v1/orders', ordersRouter);
 

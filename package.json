@@ -25,6 +25,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^6.9.0",
+    "socket.io": "^4.8.3",
     "zod": "^3.25.67"
   },
   "devDependencies": {
@@ -33,6 +34,7 @@
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.15.32",
+    "@types/socket.io": "^3.0.2",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   },

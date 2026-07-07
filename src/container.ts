@@ -14,6 +14,7 @@ import { CreateUserUseCase } from './application/use-cases/users/CreateUserUseCa
 import { ApproveUserUseCase } from './application/use-cases/users/ApproveUserUseCase';
 import { RejectUserUseCase } from './application/use-cases/users/RejectUserUseCase';
 import { ListPendingRegistrationsUseCase } from './application/use-cases/users/ListPendingRegistrationsUseCase';
+import { ListRestaurantsUseCase } from './application/use-cases/restaurants/ListRestaurantsUseCase';
 import {
   ListUsersUseCase,
   GetUserByIdUseCase,
@@ -66,6 +67,9 @@ export const container = {
   listUsersUseCase: new ListUsersUseCase(userRepository),
   getUserByIdUseCase: new GetUserByIdUseCase(userRepository),
   updateUserUseCase: new UpdateUserUseCase(userRepository),
+  
+  // Restaurant Use Cases
+  listRestaurantsUseCase: new ListRestaurantsUseCase(restaurantRepository),
   
   // Product Use Cases
   listProductsUseCase: new ListProductsUseCase(productRepository),
