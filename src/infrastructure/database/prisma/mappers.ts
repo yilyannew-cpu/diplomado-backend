@@ -107,7 +107,49 @@ export function mapCategory(record: PrismaCategory): Category {
   };
 }
 
-export function mapProduct(record: PrismaProduct): Product {
+import { Ingredient, ModifierGroup, ModifierOption } from '../../../domain/entities/Product';
+import { 
+  Ingredient as PrismaIngredient,
+  ModifierGroup as PrismaModifierGroup,
+  ModifierOption as PrismaModifierOption,
+  ProductIngredient as PrismaProductIngredient
+} from '@prisma/client';
+
+export function mapIngredient(record: PrismaIngredient): Ingredient {
+  return {
+    id: record.id,
+    name: record.name,
+    available: record.available,
+  };
+}
+
+export function mapModifierOption(record: PrismaModifierOption): ModifierOption {
+  return {
+    id: record.id,
+    name: record.name,
+    priceExtra: record.price_extra,
+    available: record.available,
+    groupId: record.group_id,
+  };
+}
+
+export function mapModifierGroup(record: PrismaModifierGroup & { options?: PrismaModifierOption[] }): ModifierGroup {
+  return {
+    id: record.id,
+    name: record.name,
+    productId: record.product_id,
+    minSelections: record.min_selections,
+    maxSelections: record.max_selections,
+    options: record.options ? record.options.map(mapModifierOption) : [],
+  };
+}
+
+type FullPrismaProduct = PrismaProduct & { 
+  ingredients?: (PrismaProductIngredient & { ingredient: PrismaIngredient })[];
+  modifier_groups?: (PrismaModifierGroup & { options: PrismaModifierOption[] })[];
+};
+
+export function mapProduct(record: FullPrismaProduct): Product {
   return {
     id: record.id,
     name: record.name,
@@ -117,12 +159,14 @@ export function mapProduct(record: PrismaProduct): Product {
     available: record.available,
     categoryId: record.category_id,
     restaurantId: record.restaurant_id,
+    ingredients: record.ingredients?.map(pi => mapIngredient(pi.ingredient)),
+    modifierGroups: record.modifier_groups?.map(mapModifierGroup),
     createdAt: record.created_at,
     updatedAt: record.updated_at,
   };
 }
 
-export function mapProductWithCategory(record: PrismaProduct & { category: PrismaCategory }): ProductWithCategory {
+export function mapProductWithCategory(record: FullPrismaProduct & { category: PrismaCategory }): ProductWithCategory {
   return {
     ...mapProduct(record),
     categoryName: record.category.name,
@@ -136,8 +180,10 @@ export function mapOrderItem(record: PrismaOrderItem): OrderItem {
     unitPrice: record.unit_price,
     orderId: record.order_id,
     productId: record.product_id,
+    customizations: record.customizations ? (record.customizations as Record<string, any>) : undefined,
   };
 }
+
 
 export function mapOrder(record: PrismaOrder & { items: PrismaOrderItem[] }): Order {
   return {

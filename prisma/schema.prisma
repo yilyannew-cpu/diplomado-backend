@@ -97,6 +97,8 @@ model Product {
   category_id   String
   restaurant    Restaurant @relation(fields: [restaurant_id], references: [id])
   restaurant_id String
+  ingredients   ProductIngredient[]
+  modifier_groups ModifierGroup[]
   order_items   OrderItem[]
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
@@ -132,7 +134,52 @@ model OrderItem {
   order_id   String
   product    Product @relation(fields: [product_id], references: [id])
   product_id String
+  customizations Json?
 
   @@map("order_items")
 }
+
+model Ingredient {
+  id         String     @id @default(uuid())
+  name       String
+  available  Boolean    @default(true)
+  products   ProductIngredient[]
+  
+  @@map("ingredients")
+}
+
+model ProductIngredient {
+  id            String     @id @default(uuid())
+  product_id    String
+  ingredient_id String
+  product       Product    @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  ingredient    Ingredient @relation(fields: [ingredient_id], references: [id], onDelete: Cascade)
+
+  @@unique([product_id, ingredient_id])
+  @@map("product_ingredients")
+}
+
+model ModifierGroup {
+  id             String           @id @default(uuid())
+  name           String
+  product_id     String
+  product        Product          @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  min_selections Int              @default(0)
+  max_selections Int              @default(1)
+  options        ModifierOption[]
+
+  @@map("modifier_groups")
+}
+
+model ModifierOption {
+  id          String        @id @default(uuid())
+  name        String
+  price_extra Int           @default(0)
+  available   Boolean       @default(true)
+  group_id    String
+  group       ModifierGroup @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  @@map("modifier_options")
+}
+
 

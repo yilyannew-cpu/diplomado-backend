@@ -203,7 +203,86 @@ async function main() {
     });
   }
 
-  console.log('Seed completado: 1 restaurante, 8 usuarios, 5 categorías, 7 productos');
+  // --- INGREDIENTS & MODIFIERS ---
+  const ingredients = ['Pan Brioche', 'Carne de Res (150g)', 'Queso Cheddar', 'Tocino', 'Salsa de la casa', 'Tomate', 'Cebolla Grillé'];
+  const createdIngredients = [];
+  for (const ing of ingredients) {
+    const created = await prisma.ingredient.upsert({
+      where: { id: `ing-${ing.replace(/\s+/g, '-').toLowerCase()}` },
+      update: {},
+      create: { id: `ing-${ing.replace(/\s+/g, '-').toLowerCase()}`, name: ing },
+    });
+    createdIngredients.push(created);
+  }
+
+  // Link ingredients to Monster Bacon
+  for (const ing of createdIngredients) {
+    await prisma.productIngredient.upsert({
+      where: { product_id_ingredient_id: { product_id: 'prod-01', ingredient_id: ing.id } },
+      update: {},
+      create: { product_id: 'prod-01', ingredient_id: ing.id },
+    });
+  }
+
+  // Add a ModifierGroup: Término de la carne
+  const termGroup = await prisma.modifierGroup.upsert({
+    where: { id: 'modg-termino-01' },
+    update: {},
+    create: {
+      id: 'modg-termino-01',
+      name: 'Término de la carne',
+      product_id: 'prod-01',
+      min_selections: 1,
+      max_selections: 1,
+    },
+  });
+
+  const terminos = ['Medio', 'Tres Cuartos', 'Bien Asada'];
+  for (let i=0; i<terminos.length; i++) {
+    await prisma.modifierOption.upsert({
+      where: { id: `modo-term-${i}` },
+      update: {},
+      create: {
+        id: `modo-term-${i}`,
+        name: terminos[i],
+        price_extra: 0,
+        group_id: termGroup.id,
+      },
+    });
+  }
+
+  // Add a ModifierGroup: Extras
+  const extrasGroup = await prisma.modifierGroup.upsert({
+    where: { id: 'modg-extras-01' },
+    update: {},
+    create: {
+      id: 'modg-extras-01',
+      name: 'Adiciona Extras',
+      product_id: 'prod-01',
+      min_selections: 0,
+      max_selections: 3,
+    },
+  });
+
+  const extras = [
+    { name: 'Tocino Crujiente', price: 3500 },
+    { name: 'Queso Cheddar', price: 2500 },
+    { name: 'Papas a la francesa pequeñas', price: 4000 },
+  ];
+  for (let i=0; i<extras.length; i++) {
+    await prisma.modifierOption.upsert({
+      where: { id: `modo-extra-${i}` },
+      update: {},
+      create: {
+        id: `modo-extra-${i}`,
+        name: extras[i].name,
+        price_extra: extras[i].price,
+        group_id: extrasGroup.id,
+      },
+    });
+  }
+
+  console.log('Seed completado: con ingredientes y modificadores para Monster Bacon');
 }
 
 main()

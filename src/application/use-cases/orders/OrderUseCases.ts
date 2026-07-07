@@ -10,7 +10,7 @@ export class CreateOrderUseCase {
 
   async execute(data: CreateOrderData) {
     // Validate items and calculate total
-    const itemsWithPrice: { productId: string; quantity: number; unitPrice: number }[] = [];
+    const itemsWithPrice: { productId: string; quantity: number; unitPrice: number; customizations?: Record<string, any> }[] = [];
     let subtotal = 0;
 
     for (const item of data.items) {
@@ -18,12 +18,20 @@ export class CreateOrderUseCase {
       if (!product) throw new Error(`Producto ${item.productId} no encontrado`);
       if (!product.available) throw new Error(`Producto "${product.name}" no está disponible`);
 
+      let extraPrice = 0;
+      if (item.customizations?.extraPrice) {
+        extraPrice = item.customizations.extraPrice;
+      }
+
+      const finalUnitPrice = product.price + extraPrice;
+
       itemsWithPrice.push({
         productId: item.productId,
         quantity: item.quantity,
-        unitPrice: product.price,
+        unitPrice: finalUnitPrice,
+        customizations: item.customizations,
       });
-      subtotal += product.price * item.quantity;
+      subtotal += finalUnitPrice * item.quantity;
     }
 
     const deliveryFee = 5000;

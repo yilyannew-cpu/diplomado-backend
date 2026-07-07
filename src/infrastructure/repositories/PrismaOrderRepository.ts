@@ -7,7 +7,7 @@ import { mapOrder, orderStatusToPrisma } from '../database/prisma/mappers';
 import { OrderStatus } from '../../domain/enums';
 
 export class PrismaOrderRepository implements IOrderRepository {
-  async create(data: CreateOrderData & { code: string; total: number; deliveryFee: number; itemsWithPrice: { productId: string; quantity: number; unitPrice: number }[] }) {
+  async create(data: CreateOrderData & { code: string; total: number; deliveryFee: number; itemsWithPrice: { productId: string; quantity: number; unitPrice: number; customizations?: Record<string, any> }[] }) {
     const record = await prisma.order.create({
       data: {
         code: data.code,
@@ -22,6 +22,7 @@ export class PrismaOrderRepository implements IOrderRepository {
             product_id: item.productId,
             quantity: item.quantity,
             unit_price: item.unitPrice,
+            customizations: item.customizations ?? {},
           })),
         },
       },
