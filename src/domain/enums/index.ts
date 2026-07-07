@@ -24,3 +24,12 @@ export enum VehicleType {
   AUTOMOVIL = 'Automóvil',
   OTRO = 'Otro',
 }
+
+export enum OrderStatus {
+  RECIBIDO = 'Recibido',
+  EN_PREPARACION = 'EnPreparacion',
+  LISTO = 'Listo',
+  EN_CAMINO = 'EnCamino',
+  ENTREGADO = 'Entregado',
+  CANCELADO = 'Cancelado',
+}

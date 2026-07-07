@@ -1,5 +1,7 @@
 import { PrismaUserRepository } from './infrastructure/repositories/PrismaUserRepository';
 import { PrismaRestaurantRepository } from './infrastructure/repositories/PrismaRestaurantRepository';
+import { PrismaProductRepository } from './infrastructure/repositories/PrismaProductRepository';
+import { PrismaOrderRepository } from './infrastructure/repositories/PrismaOrderRepository';
 import { BcryptHashService } from './infrastructure/services/BcryptHashService';
 import { JwtTokenService } from './infrastructure/services/JwtTokenService';
 import { LoginUseCase } from './application/use-cases/auth/LoginUseCase';
@@ -17,15 +19,32 @@ import {
   GetUserByIdUseCase,
   UpdateUserUseCase,
 } from './application/use-cases/users/UserManagementUseCases';
+import {
+  ListProductsUseCase,
+  GetProductUseCase,
+  CreateProductUseCase,
+  UpdateProductUseCase,
+  ToggleAvailabilityUseCase
+} from './application/use-cases/products/ProductUseCases';
+import {
+  CreateOrderUseCase,
+  ListRestaurantOrdersUseCase,
+  UpdateOrderStatusUseCase,
+  AssignCourierUseCase
+} from './application/use-cases/orders/OrderUseCases';
 
 const userRepository = new PrismaUserRepository();
 const restaurantRepository = new PrismaRestaurantRepository();
+const productRepository = new PrismaProductRepository();
+const orderRepository = new PrismaOrderRepository();
 const hashService = new BcryptHashService();
 const tokenService = new JwtTokenService();
 
 export const container = {
   userRepository,
   restaurantRepository,
+  productRepository,
+  orderRepository,
   hashService,
   tokenService,
   loginUseCase: new LoginUseCase(userRepository, hashService, tokenService),
@@ -45,4 +64,17 @@ export const container = {
   listUsersUseCase: new ListUsersUseCase(userRepository),
   getUserByIdUseCase: new GetUserByIdUseCase(userRepository),
   updateUserUseCase: new UpdateUserUseCase(userRepository),
+  
+  // Product Use Cases
+  listProductsUseCase: new ListProductsUseCase(productRepository),
+  getProductUseCase: new GetProductUseCase(productRepository),
+  createProductUseCase: new CreateProductUseCase(productRepository),
+  updateProductUseCase: new UpdateProductUseCase(productRepository),
+  toggleAvailabilityUseCase: new ToggleAvailabilityUseCase(productRepository),
+
+  // Order Use Cases
+  createOrderUseCase: new CreateOrderUseCase(orderRepository, productRepository),
+  listRestaurantOrdersUseCase: new ListRestaurantOrdersUseCase(orderRepository),
+  updateOrderStatusUseCase: new UpdateOrderStatusUseCase(orderRepository),
+  assignCourierUseCase: new AssignCourierUseCase(orderRepository),
 };

@@ -2,12 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import { authRouter } from './routes/authRoutes';
 import { usersRouter } from './routes/usersRoutes';
+import { productsRouter } from './routes/productsRoutes';
+import { ordersRouter } from './routes/ordersRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 export function createApp() {
   const app = express();
 
-  const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+  const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173,http://localhost:8080,http://localhost:8081')
     .split(',')
     .map((o) => o.trim())
     .filter(Boolean);
@@ -21,7 +23,7 @@ export function createApp() {
         if (origin.endsWith('.vercel.app')) return callback(null, true);
         callback(null, false);
       },
-      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+      methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Authorization', 'Content-Type'],
     })
   );
@@ -34,7 +36,7 @@ export function createApp() {
       version: '1.0.0',
       status: 'ok',
       health: '/api/v1/health',
-      docs: 'FFCore API v1 - Auth y Registros',
+      docs: 'FFCore API v1 - Auth, Registros, Productos y Órdenes',
     });
   });
 
@@ -49,6 +51,8 @@ export function createApp() {
 
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/users', usersRouter);
+  app.use('/api/v1/products', productsRouter);
+  app.use('/api/v1/orders', ordersRouter);
 
   app.use(errorHandler);
 

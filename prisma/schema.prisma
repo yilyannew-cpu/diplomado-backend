@@ -28,6 +28,15 @@ enum RestaurantStatus {
   Rechazado
 }
 
+enum OrderStatus {
+  Recibido
+  EnPreparacion
+  Listo
+  EnCamino
+  Entregado
+  Cancelado
+}
+
 model User {
   id            String     @id @default(uuid())
   name          String
@@ -41,6 +50,7 @@ model User {
   status        UserStatus @default(Pendiente)
   restaurant_id String?
   restaurant    Restaurant? @relation(fields: [restaurant_id], references: [id])
+  orders        Order[]    @relation("CourierOrders")
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
 
@@ -59,8 +69,70 @@ model Restaurant {
   initials         String
   status           RestaurantStatus @default(Pendiente)
   users            User[]
+  products         Product[]
+  orders           Order[]
   created_at       DateTime         @default(now())
   updated_at       DateTime         @updatedAt
 
   @@map("restaurants")
 }
+
+model Category {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  position Int       @default(0)
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            String     @id @default(uuid())
+  name          String
+  description   String
+  price         Int
+  image         String
+  available     Boolean    @default(true)
+  category      Category   @relation(fields: [category_id], references: [id])
+  category_id   String
+  restaurant    Restaurant @relation(fields: [restaurant_id], references: [id])
+  restaurant_id String
+  order_items   OrderItem[]
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  @@map("products")
+}
+
+model Order {
+  id                 String      @id @default(uuid())
+  code               String      @unique
+  customer_name      String
+  address            String
+  phone              String
+  status             OrderStatus @default(Recibido)
+  total              Int
+  delivery_fee       Int         @default(5000)
+  restaurant         Restaurant  @relation(fields: [restaurant_id], references: [id])
+  restaurant_id      String
+  delivery_person    User?       @relation("CourierOrders", fields: [delivery_person_id], references: [id])
+  delivery_person_id String?
+  items              OrderItem[]
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String  @id @default(uuid())
+  quantity   Int
+  unit_price Int
+  order      Order   @relation(fields: [order_id], references: [id])
+  order_id   String
+  product    Product @relation(fields: [product_id], references: [id])
+  product_id String
+
+  @@map("order_items")
+}
+
