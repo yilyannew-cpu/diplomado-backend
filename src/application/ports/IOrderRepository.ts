@@ -11,6 +11,8 @@ export interface CreateOrderData {
   customerName: string;
   address: string;
   phone: string;
+  paymentMethod?: string;
+  paymentStatus?: string;
   restaurantId: string;
   items: CreateOrderItemData[];
 }

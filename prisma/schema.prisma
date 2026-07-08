@@ -37,6 +37,18 @@ enum OrderStatus {
   Cancelado
 }
 
+enum PaymentStatus {
+  Pending
+  Paid
+  Failed
+  Refunded
+}
+
+enum PaymentMethod {
+  Cash
+  Online
+}
+
 model User {
   id            String     @id @default(uuid())
   name          String
@@ -113,6 +125,8 @@ model Order {
   address            String
   phone              String
   status             OrderStatus @default(Recibido)
+  payment_method     PaymentMethod @default(Cash)
+  payment_status     PaymentStatus @default(Pending)
   total              Int
   delivery_fee       Int         @default(5000)
   restaurant         Restaurant  @relation(fields: [restaurant_id], references: [id])
