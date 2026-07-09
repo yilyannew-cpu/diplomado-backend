@@ -4,6 +4,18 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
+  // Limpia datos sin tocar el esquema (orden por dependencias FK)
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.modifierOption.deleteMany();
+  await prisma.modifierGroup.deleteMany();
+  await prisma.productIngredient.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.ingredient.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.restaurant.deleteMany();
+
   const passwordHash = await bcrypt.hash('demo', 10);
 
   const restaurant = await prisma.restaurant.upsert({
@@ -77,48 +89,27 @@ async function main() {
   const users = [
     {
       name: 'Laura Martínez',
-      email: 'cliente1@ffcore.co',
+      email: 'cliente@ffcore.co',
       role: Role.cliente,
       status: UserStatus.Activo,
       phone: '+57 310 555 0102',
     },
     {
-      name: 'Juan Pablo Montoya',
-      email: 'cliente2@ffcore.co',
-      role: Role.cliente,
-      status: UserStatus.Activo,
-      phone: '+57 315 555 0544',
-    },
-    {
-      name: 'Valeria Ospina',
-      email: 'cliente3@ffcore.co',
-      role: Role.cliente,
-      status: UserStatus.Suspendido,
-      phone: '+57 317 555 0766',
-    },
-    {
       name: 'Carlos Restrepo',
-      email: 'admin1@ffcore.co',
+      email: 'admin@ffcore.co',
       role: Role.admin,
       status: UserStatus.Activo,
       phone: '+57 311 555 0211',
       restaurant_id: restaurant.id,
     },
     {
-      name: 'Sede Caobos',
-      email: 'admin2@ffcore.co',
-      role: Role.admin,
+      name: 'Sebastián Domínguez',
+      email: 'domi@ffcore.co',
+      role: Role.domiciliario,
       status: UserStatus.Activo,
-      phone: '+57 607 555 0877',
-      restaurant_id: restaurant.id,
-    },
-    {
-      name: 'Sede Centro',
-      email: 'admin3@ffcore.co',
-      role: Role.admin,
-      status: UserStatus.Activo,
-      phone: '+57 607 555 0888',
-      restaurant_id: restaurant.id,
+      phone: '+57 313 555 0433',
+      vehicle: 'Moto AKT — PLA-23H',
+      document_id: '1035678901',
     },
     {
       name: 'Super Admin',
@@ -127,40 +118,11 @@ async function main() {
       status: UserStatus.Activo,
       phone: '+57 300 555 0001',
     },
-    {
-      name: 'Mariana Gil',
-      email: 'domi1@ffcore.co',
-      role: Role.domiciliario,
-      status: UserStatus.Activo,
-      phone: '+57 313 555 0433',
-      vehicle: 'Moto AKT — PLA-23H',
-      document_id: '1035678901',
-    },
-    {
-      name: 'Seba Courier',
-      email: 'domi2@ffcore.co',
-      role: Role.domiciliario,
-      status: UserStatus.Activo,
-      phone: '+57 316 555 0655',
-      vehicle: 'Bici eléctrica — BIC-09',
-      document_id: '1020456789',
-    },
-    {
-      name: 'Camilo Repartidor',
-      email: 'domi3@ffcore.co',
-      role: Role.domiciliario,
-      status: UserStatus.Activo,
-      phone: '+57 318 555 0999',
-      vehicle: 'Moto Yamaha — XYZ-123',
-      document_id: '1055555555',
-    },
   ];
 
   for (const user of users) {
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: {},
-      create: {
+    await prisma.user.create({
+      data: {
         ...user,
         password_hash: passwordHash,
       },
@@ -380,7 +342,7 @@ async function main() {
     });
   }
 
-  console.log('Seed completado: con ingredientes y modificadores para Monster Bacon');
+  console.log('Seed completado: 4 usuarios (1 por rol), restaurantes, productos y modificadores. Password: demo');
 }
 
 main()
