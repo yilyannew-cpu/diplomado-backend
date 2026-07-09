@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Role, UserStatus } from '../../../domain/enums';
+import { Role, UserStatus, OrderStatus } from '../../../domain/enums';
 
 const passwordSchema = z
   .string()
@@ -94,6 +94,26 @@ export const rejectUserSchema = z.object({
   reason: z.string().max(500).optional(),
 });
 
+export const updateProfileSchema = z
+  .object({
+    email: z.string().email('Email inválido').optional(),
+    phone: phoneSchema.optional(),
+  })
+  .refine((data) => data.email !== undefined || data.phone !== undefined, {
+    message: 'Debe enviar al menos email o teléfono',
+  });
+
+export const changePasswordSchema = z
+  .object({
+    current_password: z.string().min(1, 'La contraseña actual es requerida'),
+    password: passwordSchema,
+    password_confirmation: z.string(),
+  })
+  .refine((data) => data.password === data.password_confirmation, {
+    message: 'Las contraseñas no coinciden',
+    path: ['password_confirmation'],
+  });
+
 export const listUsersQuerySchema = z.object({
   role: z.nativeEnum(Role).optional(),
   status: z.nativeEnum(UserStatus).optional(),
@@ -102,4 +122,8 @@ export const listUsersQuerySchema = z.object({
 
 export const idParamSchema = z.object({
   id: z.string().uuid('ID inválido'),
+});
+
+export const listOrdersQuerySchema = z.object({
+  status: z.nativeEnum(OrderStatus).optional(),
 });

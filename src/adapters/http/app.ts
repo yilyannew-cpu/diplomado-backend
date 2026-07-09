@@ -2,9 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import { authRouter } from './routes/authRoutes';
 import { usersRouter } from './routes/usersRoutes';
+import { metricsRouter } from './routes/metricsRoutes';
+import { systemRouter } from './routes/systemRoutes';
 import { productsRouter } from './routes/productsRoutes';
 import { ordersRouter } from './routes/ordersRoutes';
 import { restaurantsRouter } from './routes/restaurantsRoutes';
+import { couriersRouter } from './routes/couriersRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 export function createApp() {
@@ -37,7 +40,7 @@ export function createApp() {
       version: '1.0.0',
       status: 'ok',
       health: '/api/v1/health',
-      docs: 'FFCore API v1 - Auth, Registros, Productos y Órdenes',
+      docs: 'FFCore API v1 - Auth, Registros, Operaciones, Productos y Órdenes',
     });
   });
 
@@ -52,6 +55,9 @@ export function createApp() {
 
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/users', usersRouter);
+  app.use('/api/v1/metrics', metricsRouter);
+  app.use('/api/v1/system', systemRouter);
+  app.use('/api/v1/couriers', couriersRouter);
   app.use('/api/v1/restaurants', restaurantsRouter);
   app.use('/api/v1/products', productsRouter);
   app.use('/api/v1/orders', ordersRouter);

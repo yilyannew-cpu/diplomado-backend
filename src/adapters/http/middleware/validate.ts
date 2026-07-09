@@ -4,11 +4,26 @@ import { DomainError } from '../../../domain/errors';
 
 type ValidationTarget = 'body' | 'query' | 'params';
 
+function assignValidated(req: Request, target: ValidationTarget, parsed: unknown): void {
+  if (target === 'body') {
+    req.body = parsed;
+    return;
+  }
+
+  // Express 5 expone query/params como getters de solo lectura.
+  Object.defineProperty(req, target, {
+    value: parsed,
+    writable: true,
+    configurable: true,
+    enumerable: true,
+  });
+}
+
 export function validate(schema: ZodSchema, target: ValidationTarget = 'body') {
   return (req: Request, _res: Response, next: NextFunction) => {
     try {
       const parsed = schema.parse(req[target]);
-      req[target] = parsed;
+      assignValidated(req, target, parsed);
       next();
     } catch (error) {
       if (error instanceof ZodError) {

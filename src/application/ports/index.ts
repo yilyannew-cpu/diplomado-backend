@@ -23,6 +23,7 @@ export interface UpdateUserData {
   role?: Role;
   status?: UserStatus;
   restaurantId?: string | null;
+  passwordHash?: string;
 }
 
 export interface ListUsersFilters {
