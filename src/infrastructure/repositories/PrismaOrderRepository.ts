@@ -16,6 +16,8 @@ export class PrismaOrderRepository implements IOrderRepository {
         phone: data.phone,
         total: data.total,
         delivery_fee: data.deliveryFee,
+        payment_method: data.paymentMethod ?? 'Cash',
+        payment_status: data.paymentStatus ?? 'Pending',
         restaurant_id: data.restaurantId,
         items: {
           create: data.itemsWithPrice.map(item => ({
@@ -52,6 +54,19 @@ export class PrismaOrderRepository implements IOrderRepository {
     const record = await prisma.order.update({
       where: { id },
       data: { status: orderStatusToPrisma[status] },
+      include: { items: true },
+    });
+    return mapOrder(record);
+  }
+
+  async rejectPayment(id: string, observation: string) {
+    const record = await prisma.order.update({
+      where: { id },
+      data: { 
+        status: 'Cancelado',
+        payment_observation: observation,
+        payment_status: 'Rechazado'
+      },
       include: { items: true },
     });
     return mapOrder(record);

@@ -11,6 +11,14 @@ export interface Restaurant {
   accent: string;
   initials: string;
   status: RestaurantStatus;
+  
+  // Payment config
+  nequiNumber?: string | null;
+  nequiOwner?: string | null;
+  brebKey?: string | null;
+  brebOwner?: string | null;
+  brebQrUrl?: string | null;
+
   createdAt: Date;
   updatedAt: Date;
 }

@@ -22,6 +22,7 @@ export interface IOrderRepository {
   findByCode(code: string): Promise<Order | null>;
   listByRestaurant(restaurantId: string): Promise<Order[]>;
   updateStatus(id: string, status: OrderStatus): Promise<Order>;
+  rejectPayment(id: string, observation: string): Promise<Order>;
   assignCourier(id: string, courierId: string): Promise<Order>;
   listAvailableForDelivery(): Promise<Order[]>;
   listByCourier(courierId: string): Promise<Order[]>;
