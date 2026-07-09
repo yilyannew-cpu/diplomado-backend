@@ -1,5 +1,12 @@
 import { PublicUser } from '../../../domain/entities/User';
 
+function toIsoDate(value: Date | null | undefined): string | null {
+  if (!value || Number.isNaN(value.getTime())) {
+    return null;
+  }
+  return value.toISOString();
+}
+
 export function serializeUser(user: PublicUser) {
   return {
     id: user.id,
@@ -12,8 +19,8 @@ export function serializeUser(user: PublicUser) {
     avatar: user.avatar,
     restaurant_id: user.restaurantId,
     status: user.status,
-    created_at: user.createdAt.toISOString(),
-    updated_at: user.updatedAt.toISOString(),
+    created_at: toIsoDate(user.createdAt),
+    updated_at: toIsoDate(user.updatedAt),
   };
 }
 

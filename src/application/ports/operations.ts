@@ -7,6 +7,7 @@ export interface DashboardMetrics {
   orders_today: number;
   active_couriers: number;
   active_restaurants: number;
+  registered_clients: number;
 }
 
 export interface SystemServiceStatus {

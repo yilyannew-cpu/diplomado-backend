@@ -85,12 +85,15 @@ function minutesFromNow(minutes: number): string {
 
 export class PrismaOperationsRepository implements IOperationsRepository {
   async getDashboardMetrics(): Promise<DashboardMetrics> {
-    const [activeCouriers, activeRestaurants] = await Promise.all([
+    const [activeCouriers, activeRestaurants, registeredClients] = await Promise.all([
       prisma.user.count({
         where: { role: roleToPrisma[Role.DOMICILIARIO], status: statusToPrisma[UserStatus.ACTIVO] },
       }),
       prisma.restaurant.count({
         where: { status: restaurantStatusToPrisma[RestaurantStatus.ACTIVO] },
+      }),
+      prisma.user.count({
+        where: { role: roleToPrisma[Role.CLIENTE], status: statusToPrisma[UserStatus.ACTIVO] },
       }),
     ]);
 
@@ -108,6 +111,7 @@ export class PrismaOperationsRepository implements IOperationsRepository {
       orders_today: 47,
       active_couriers: activeCouriers,
       active_restaurants: activeRestaurants,
+      registered_clients: registeredClients,
     };
   }
 
