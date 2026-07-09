@@ -88,3 +88,22 @@ export interface IHashService {
   hash(plain: string): Promise<string>;
   compare(plain: string, hash: string): Promise<boolean>;
 }
+
+export interface UserReportData {
+  id: string;
+  reportedUser: string;
+  reportedBy: string;
+  reason: string;
+  createdAt: Date;
+}
+
+export interface CreateUserReportData {
+  reportedUser: string;
+  reportedBy: string;
+  reason: string;
+}
+
+export interface IUserReportRepository {
+  create(data: CreateUserReportData): Promise<UserReportData>;
+  listAll(): Promise<UserReportData[]>;
+}

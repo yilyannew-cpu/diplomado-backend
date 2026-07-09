@@ -3,6 +3,7 @@ import { PrismaRestaurantRepository } from './infrastructure/repositories/Prisma
 import { PrismaProductRepository } from './infrastructure/repositories/PrismaProductRepository';
 import { PrismaOrderRepository } from './infrastructure/repositories/PrismaOrderRepository';
 import { PrismaOperationsRepository } from './infrastructure/repositories/PrismaOperationsRepository';
+import { PrismaUserReportRepository } from './infrastructure/repositories/PrismaUserReportRepository';
 import { BcryptHashService } from './infrastructure/services/BcryptHashService';
 import { JwtTokenService } from './infrastructure/services/JwtTokenService';
 import { LoginUseCase } from './application/use-cases/auth/LoginUseCase';
@@ -45,12 +46,16 @@ import {
   ListActiveCouriersUseCase,
   GetOperationsMetricsUseCase,
 } from './application/use-cases/operations/OperationsUseCases';
+import { RejectPaymentUseCase } from './application/use-cases/orders/RejectPaymentUseCase';
+import { CreateUserReportUseCase } from './application/use-cases/reports/CreateUserReportUseCase';
+import { ListUserReportsUseCase } from './application/use-cases/reports/ListUserReportsUseCase';
 
 const userRepository = new PrismaUserRepository();
 const restaurantRepository = new PrismaRestaurantRepository();
 const productRepository = new PrismaProductRepository();
 const orderRepository = new PrismaOrderRepository();
 const operationsRepository = new PrismaOperationsRepository();
+const userReportRepository = new PrismaUserReportRepository();
 const hashService = new BcryptHashService();
 const tokenService = new JwtTokenService();
 
@@ -80,10 +85,8 @@ export const container = {
   listUsersUseCase: new ListUsersUseCase(userRepository),
   getUserByIdUseCase: new GetUserByIdUseCase(userRepository),
   updateUserUseCase: new UpdateUserUseCase(userRepository),
-
   // Restaurant Use Cases
   listRestaurantsUseCase: new ListRestaurantsUseCase(restaurantRepository),
-
   // Product Use Cases
   listProductsUseCase: new ListProductsUseCase(productRepository),
   getProductUseCase: new GetProductUseCase(productRepository),
@@ -98,11 +101,17 @@ export const container = {
   assignCourierUseCase: new AssignCourierUseCase(orderRepository),
   listAvailableDeliveriesUseCase: new ListAvailableDeliveriesUseCase(orderRepository),
   listCourierOrdersUseCase: new ListCourierOrdersUseCase(orderRepository),
-
   // Operations / Superadmin dashboard
   getDashboardMetricsUseCase: new GetDashboardMetricsUseCase(operationsRepository),
   getSystemStatusUseCase: new GetSystemStatusUseCase(operationsRepository),
   listOrdersUseCase: new ListOrdersUseCase(operationsRepository),
   listActiveCouriersUseCase: new ListActiveCouriersUseCase(operationsRepository),
   getOperationsMetricsUseCase: new GetOperationsMetricsUseCase(operationsRepository),
+  
+  // Fraud Reports
+  createUserReportUseCase: new CreateUserReportUseCase(userReportRepository),
+  listUserReportsUseCase: new ListUserReportsUseCase(userReportRepository),
+  
+  // Payment
+  rejectPaymentUseCase: new RejectPaymentUseCase(orderRepository),
 };

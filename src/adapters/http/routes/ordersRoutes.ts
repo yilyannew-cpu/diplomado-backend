@@ -7,6 +7,7 @@ import {
   createOrderController,
   listRestaurantOrdersController,
   updateOrderStatusController,
+  rejectPaymentController,
   assignCourierController,
   listAvailableDeliveriesController,
   listCourierOrdersController
@@ -29,6 +30,7 @@ router.post('/', createOrderController);
 // Protected routes
 router.get('/restaurant/:restaurantId', ...adminOrCourier, listRestaurantOrdersController);
 router.patch('/:id/status', ...adminOrCourier, updateOrderStatusController);
+router.patch('/:id/reject-payment', ...adminOnly, rejectPaymentController);
 router.patch('/:id/assign', ...adminOnly, assignCourierController);
 router.get('/delivery/available', ...adminOrCourier, listAvailableDeliveriesController);
 router.get('/courier/:courierId', ...adminOrCourier, listCourierOrdersController);

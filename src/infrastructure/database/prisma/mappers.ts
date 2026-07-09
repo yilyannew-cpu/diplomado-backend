@@ -94,6 +94,14 @@ export function mapRestaurant(record: PrismaRestaurant): Restaurant {
     accent: record.accent,
     initials: record.initials,
     status: restaurantStatusMap[record.status],
+    
+    // Payment config
+    nequiNumber: record.nequi_number,
+    nequiOwner: record.nequi_owner,
+    brebKey: record.breb_key,
+    brebOwner: record.breb_owner,
+    brebQrUrl: record.breb_qr_url,
+
     createdAt: record.created_at,
     updatedAt: record.updated_at,
   };
@@ -193,6 +201,12 @@ export function mapOrder(record: PrismaOrder & { items: PrismaOrderItem[] }): Or
     address: record.address,
     phone: record.phone,
     status: orderStatusMap[record.status],
+    
+    // Payment config
+    paymentMethod: record.payment_method,
+    paymentStatus: record.payment_status,
+    paymentObservation: record.payment_observation,
+
     total: record.total,
     deliveryFee: record.delivery_fee,
     restaurantId: record.restaurant_id,

@@ -16,6 +16,9 @@ export interface Order {
   address: string;
   phone: string;
   status: OrderStatus;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  paymentObservation?: string | null;
   total: number;
   deliveryFee: number;
   restaurantId: string;

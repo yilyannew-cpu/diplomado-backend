@@ -89,17 +89,47 @@ async function main() {
   const users = [
     {
       name: 'Laura Martínez',
-      email: 'cliente@ffcore.co',
+      email: 'cliente1@ffcore.co',
       role: Role.cliente,
       status: UserStatus.Activo,
       phone: '+57 310 555 0102',
     },
     {
+      name: 'Juan Pablo Montoya',
+      email: 'cliente2@ffcore.co',
+      role: Role.cliente,
+      status: UserStatus.Activo,
+      phone: '+57 315 555 0544',
+    },
+    {
+      name: 'Valeria Ospina',
+      email: 'cliente3@ffcore.co',
+      role: Role.cliente,
+      status: UserStatus.Suspendido,
+      phone: '+57 317 555 0766',
+    },
+    {
       name: 'Carlos Restrepo',
-      email: 'admin@ffcore.co',
+      email: 'admin1@ffcore.co',
       role: Role.admin,
       status: UserStatus.Activo,
       phone: '+57 311 555 0211',
+      restaurant_id: restaurant.id,
+    },
+    {
+      name: 'Sede Caobos',
+      email: 'admin2@ffcore.co',
+      role: Role.admin,
+      status: UserStatus.Activo,
+      phone: '+57 607 555 0877',
+      restaurant_id: restaurant.id,
+    },
+    {
+      name: 'Sede Centro',
+      email: 'admin3@ffcore.co',
+      role: Role.admin,
+      status: UserStatus.Activo,
+      phone: '+57 607 555 0888',
       restaurant_id: restaurant.id,
     },
     {
@@ -117,6 +147,33 @@ async function main() {
       role: Role.superadmin,
       status: UserStatus.Activo,
       phone: '+57 300 555 0001',
+    },
+    {
+      name: 'Mariana Gil',
+      email: 'domi1@ffcore.co',
+      role: Role.domiciliario,
+      status: UserStatus.Activo,
+      phone: '+57 313 555 0433',
+      vehicle: 'Moto AKT — PLA-23H',
+      document_id: '1035678901',
+    },
+    {
+      name: 'Seba Courier',
+      email: 'domi2@ffcore.co',
+      role: Role.domiciliario,
+      status: UserStatus.Activo,
+      phone: '+57 316 555 0655',
+      vehicle: 'Bici eléctrica — BIC-09',
+      document_id: '1020456789',
+    },
+    {
+      name: 'Camilo Repartidor',
+      email: 'domi3@ffcore.co',
+      role: Role.domiciliario,
+      status: UserStatus.Activo,
+      phone: '+57 318 555 0999',
+      vehicle: 'Moto Yamaha — XYZ-123',
+      document_id: '1055555555',
     },
   ];
 
@@ -342,7 +399,7 @@ async function main() {
     });
   }
 
-  console.log('Seed completado: 4 usuarios (1 por rol), restaurantes, productos y modificadores. Password: demo');
+  console.log('Seed completado: con ingredientes y modificadores para Monster Bacon');
 }
 
 main()

@@ -38,6 +38,20 @@ export async function updateOrderStatusController(req: Request, res: Response, n
   }
 }
 
+export async function rejectPaymentController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const order = await container.rejectPaymentUseCase.execute(
+      param(req, 'id'),
+      req.body.observation
+    );
+    const io = req.app.get('io') as SocketIOServer;
+    if (io) io.emit('payment:rejected', order);
+    res.json(order);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function assignCourierController(req: Request, res: Response, next: NextFunction) {
   try {
     const order = await container.assignCourierUseCase.execute(

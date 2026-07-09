@@ -8,6 +8,7 @@ import { productsRouter } from './routes/productsRoutes';
 import { ordersRouter } from './routes/ordersRoutes';
 import { restaurantsRouter } from './routes/restaurantsRoutes';
 import { couriersRouter } from './routes/couriersRoutes';
+import { reportsRouter } from './routes/reportsRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 export function createApp() {
