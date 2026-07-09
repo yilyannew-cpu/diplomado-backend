@@ -14,26 +14,21 @@ ALTER TABLE "categories" ALTER COLUMN "restaurant_id" SET NOT NULL;
 ALTER TABLE "categories" DROP CONSTRAINT IF EXISTS "categories_name_key";
 DROP INDEX IF EXISTS "categories_name_key";
 
-ALTER TABLE "categories" ADD CONSTRAINT "categories_restaurant_id_fkey"
-  FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "categories" ADD CONSTRAINT "categories_restaurant_id_fkey"
+    FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-ALTER TABLE "categories" ADD CONSTRAINT "categories_restaurant_id_name_key" UNIQUE ("restaurant_id", "name");
+DO $$ BEGIN
+  ALTER TABLE "categories" ADD CONSTRAINT "categories_restaurant_id_name_key" UNIQUE ("restaurant_id", "name");
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
--- Order: notas, zona, timestamp de estado, pagos
+-- Order: notas, zona, timestamp de estado, pagos (TEXT — compatible con pasarela)
 ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "notes" TEXT;
 ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "zone" TEXT;
 ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "status_entered_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
-
-DO $$ BEGIN
-  CREATE TYPE "PaymentMethod" AS ENUM ('Cash', 'Online');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-  CREATE TYPE "PaymentStatus" AS ENUM ('Pending', 'Paid', 'Failed', 'Refunded');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_method" "PaymentMethod" NOT NULL DEFAULT 'Cash';
-ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_status" "PaymentStatus" NOT NULL DEFAULT 'Pending';
+ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_method" TEXT NOT NULL DEFAULT 'Cash';
+ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "payment_status" TEXT NOT NULL DEFAULT 'Pending';
 
 -- Promotions
 CREATE TABLE IF NOT EXISTS "promotions" (
@@ -56,17 +51,25 @@ CREATE TABLE IF NOT EXISTS "promotion_products" (
     CONSTRAINT "promotion_products_pkey" PRIMARY KEY ("id")
 );
 
-ALTER TABLE "promotions" ADD CONSTRAINT "promotions_restaurant_id_fkey"
-  FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "promotions" ADD CONSTRAINT "promotions_restaurant_id_fkey"
+    FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-ALTER TABLE "promotion_products" ADD CONSTRAINT "promotion_products_promotion_id_fkey"
-  FOREIGN KEY ("promotion_id") REFERENCES "promotions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "promotion_products" ADD CONSTRAINT "promotion_products_promotion_id_fkey"
+    FOREIGN KEY ("promotion_id") REFERENCES "promotions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-ALTER TABLE "promotion_products" ADD CONSTRAINT "promotion_products_product_id_fkey"
-  FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "promotion_products" ADD CONSTRAINT "promotion_products_product_id_fkey"
+    FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-ALTER TABLE "promotion_products" ADD CONSTRAINT "promotion_products_promotion_id_product_id_key"
-  UNIQUE ("promotion_id", "product_id");
+DO $$ BEGIN
+  ALTER TABLE "promotion_products" ADD CONSTRAINT "promotion_products_promotion_id_product_id_key"
+    UNIQUE ("promotion_id", "product_id");
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- Reviews
 CREATE TABLE IF NOT EXISTS "reviews" (
@@ -79,8 +82,10 @@ CREATE TABLE IF NOT EXISTS "reviews" (
     CONSTRAINT "reviews_pkey" PRIMARY KEY ("id")
 );
 
-ALTER TABLE "reviews" ADD CONSTRAINT "reviews_restaurant_id_fkey"
-  FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "reviews" ADD CONSTRAINT "reviews_restaurant_id_fkey"
+    FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- Dispatches
 CREATE TABLE IF NOT EXISTS "dispatches" (
@@ -92,13 +97,21 @@ CREATE TABLE IF NOT EXISTS "dispatches" (
     CONSTRAINT "dispatches_pkey" PRIMARY KEY ("id")
 );
 
-ALTER TABLE "dispatches" ADD CONSTRAINT "dispatches_order_id_key" UNIQUE ("order_id");
+DO $$ BEGIN
+  ALTER TABLE "dispatches" ADD CONSTRAINT "dispatches_order_id_key" UNIQUE ("order_id");
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-ALTER TABLE "dispatches" ADD CONSTRAINT "dispatches_order_id_fkey"
-  FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "dispatches" ADD CONSTRAINT "dispatches_order_id_fkey"
+    FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-ALTER TABLE "dispatches" ADD CONSTRAINT "dispatches_courier_id_fkey"
-  FOREIGN KEY ("courier_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "dispatches" ADD CONSTRAINT "dispatches_courier_id_fkey"
+    FOREIGN KEY ("courier_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-ALTER TABLE "dispatches" ADD CONSTRAINT "dispatches_restaurant_id_fkey"
-  FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "dispatches" ADD CONSTRAINT "dispatches_restaurant_id_fkey"
+    FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN null; END $$;
