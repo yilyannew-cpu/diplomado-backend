@@ -6,11 +6,17 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc",
+    "build:render": "prisma generate && prisma migrate deploy && tsc",
     "start": "node dist/server.js",
-    "start:render": "prisma migrate deploy && node dist/server.js",
+    "start:render": "node dist/server.js",
+    "setup": "node scripts/setup.cjs",
+    "setup:clean": "node scripts/setup.cjs --clean",
+    "setup:docker": "docker compose up -d && node scripts/setup.cjs",
+    "setup:win": "powershell -ExecutionPolicy Bypass -File scripts/setup.ps1",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "prisma db seed"
+    "prisma:seed": "prisma db seed",
+    "db:reset-data": "prisma db seed"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -39,6 +45,6 @@
     "typescript": "^5.8.3"
   },
   "engines": {
-    "node": ">=20"
+    "node": "20.x"
   }
 }

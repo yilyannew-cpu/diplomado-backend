@@ -19,7 +19,7 @@ export async function listPendingController(_req: Request, res: Response, next: 
       role: user.role,
       phone: user.phone,
       status: user.status,
-      created_at: user.createdAt.toISOString(),
+      created_at: user.createdAt ? user.createdAt.toISOString() : null,
       restaurant: user.restaurant ?? undefined,
     }));
     res.json({ data });

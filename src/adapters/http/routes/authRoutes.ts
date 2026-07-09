@@ -7,11 +7,15 @@ import {
   registerClientSchema,
   registerRestaurantSchema,
   registerCourierSchema,
+  updateProfileSchema,
+  changePasswordSchema,
 } from '../dto/schemas';
 import {
   loginController,
   getMeController,
   logoutController,
+  updateProfileController,
+  changePasswordController,
   registerClientController,
   registerRestaurantController,
   registerCourierController,
@@ -26,4 +30,6 @@ authRouter.post('/register/client', validate(registerClientSchema), registerClie
 authRouter.post('/register/restaurant', validate(registerRestaurantSchema), registerRestaurantController);
 authRouter.post('/register/courier', validate(registerCourierSchema), registerCourierController);
 authRouter.get('/me', authenticate, getMeController);
+authRouter.patch('/me', authenticate, validate(updateProfileSchema), updateProfileController);
+authRouter.patch('/me/password', authenticate, validate(changePasswordSchema), changePasswordController);
 authRouter.post('/logout', authenticate, logoutController);

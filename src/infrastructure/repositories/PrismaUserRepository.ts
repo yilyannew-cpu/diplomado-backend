@@ -55,6 +55,7 @@ export class PrismaUserRepository implements IUserRepository {
         ...(data.role !== undefined && { role: roleToPrisma[data.role] }),
         ...(data.status !== undefined && { status: statusToPrisma[data.status] }),
         ...(data.restaurantId !== undefined && { restaurant_id: data.restaurantId }),
+        ...(data.passwordHash !== undefined && { password_hash: data.passwordHash }),
       },
     });
     return mapUser(record);

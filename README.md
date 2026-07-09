@@ -61,7 +61,18 @@ Formato de la URL:
 postgresql://USUARIO:CONTRASEÑA@localhost:5432/ffcore
 ```
 
-### 3. Migrar y seed (desde Git Bash o PowerShell en Windows)
+### 3. Instalar todo y arrancar (recomendado)
+
+```bash
+npm run setup
+npm run dev
+```
+
+`npm run setup` instala dependencias, genera Prisma, aplica migraciones y carga datos demo.  
+Si hubo problemas con WSL/Windows: `npm run setup:clean`.  
+Con Docker para Postgres: `npm run setup:docker`.
+
+Instalación manual:
 
 ```bash
 npm install

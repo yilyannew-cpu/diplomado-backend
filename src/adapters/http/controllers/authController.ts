@@ -32,6 +32,30 @@ export async function logoutController(_req: Request, res: Response, next: NextF
   }
 }
 
+export async function updateProfileController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const user = await container.updateProfileUseCase.execute(req.user!.id, req.user!.role, {
+      email: req.body.email,
+      phone: req.body.phone,
+    });
+    res.json({ user: serializeUserPublic(user) });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function changePasswordController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const user = await container.changePasswordUseCase.execute(req.user!.id, {
+      currentPassword: req.body.current_password,
+      password: req.body.password,
+    });
+    res.json({ user: serializeUserPublic(user), message: 'Contraseña actualizada correctamente' });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function registerClientController(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await container.registerClientUseCase.execute({

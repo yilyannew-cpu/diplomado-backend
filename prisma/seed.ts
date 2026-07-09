@@ -4,6 +4,18 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
+  // Limpia datos sin tocar el esquema (orden por dependencias FK)
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.modifierOption.deleteMany();
+  await prisma.modifierGroup.deleteMany();
+  await prisma.productIngredient.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.ingredient.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.restaurant.deleteMany();
+
   const passwordHash = await bcrypt.hash('demo', 10);
 
   const restaurant = await prisma.restaurant.upsert({
@@ -121,6 +133,15 @@ async function main() {
       restaurant_id: restaurant.id,
     },
     {
+      name: 'Sebastián Domínguez',
+      email: 'domi@ffcore.co',
+      role: Role.domiciliario,
+      status: UserStatus.Activo,
+      phone: '+57 313 555 0433',
+      vehicle: 'Moto AKT — PLA-23H',
+      document_id: '1035678901',
+    },
+    {
       name: 'Super Admin',
       email: 'super@ffcore.co',
       role: Role.superadmin,
@@ -157,10 +178,8 @@ async function main() {
   ];
 
   for (const user of users) {
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: {},
-      create: {
+    await prisma.user.create({
+      data: {
         ...user,
         password_hash: passwordHash,
       },

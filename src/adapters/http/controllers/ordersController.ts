@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 import { container } from '../../../container';
 import { OrderStatus } from '../../../domain/enums';
+import { param } from '../utils/routeParams';
 
 export async function createOrderController(req: Request, res: Response, next: NextFunction) {
   try {
@@ -16,7 +17,7 @@ export async function createOrderController(req: Request, res: Response, next: N
 
 export async function listRestaurantOrdersController(req: Request, res: Response, next: NextFunction) {
   try {
-    const orders = await container.listRestaurantOrdersUseCase.execute(req.params.restaurantId);
+    const orders = await container.listRestaurantOrdersUseCase.execute(param(req, 'restaurantId'));
     res.json(orders);
   } catch (error) {
     next(error);
@@ -26,7 +27,7 @@ export async function listRestaurantOrdersController(req: Request, res: Response
 export async function updateOrderStatusController(req: Request, res: Response, next: NextFunction) {
   try {
     const order = await container.updateOrderStatusUseCase.execute(
-      req.params.id,
+      param(req, 'id'),
       req.body.status as OrderStatus
     );
     const io = req.app.get('io') as SocketIOServer;
@@ -37,10 +38,24 @@ export async function updateOrderStatusController(req: Request, res: Response, n
   }
 }
 
+export async function rejectPaymentController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const order = await container.rejectPaymentUseCase.execute(
+      param(req, 'id'),
+      req.body.observation
+    );
+    const io = req.app.get('io') as SocketIOServer;
+    if (io) io.emit('payment:rejected', order);
+    res.json(order);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function assignCourierController(req: Request, res: Response, next: NextFunction) {
   try {
     const order = await container.assignCourierUseCase.execute(
-      req.params.id,
+      param(req, 'id'),
       req.body.courierId
     );
     const io = req.app.get('io') as SocketIOServer;
@@ -62,7 +77,7 @@ export async function listAvailableDeliveriesController(req: Request, res: Respo
 
 export async function listCourierOrdersController(req: Request, res: Response, next: NextFunction) {
   try {
-    const orders = await container.listCourierOrdersUseCase.execute(req.params.courierId);
+    const orders = await container.listCourierOrdersUseCase.execute(param(req, 'courierId'));
     res.json(orders);
   } catch (error) {
     next(error);
