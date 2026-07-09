@@ -1,4 +1,10 @@
-import { IProductRepository, ListProductsFilters } from '../../ports/IProductRepository';
+import {
+  IProductRepository,
+  ListProductsFilters,
+  IngredientInput,
+  ModifierGroupInput,
+} from '../../ports/IProductRepository';
+import { NotFoundError } from '../../../domain/errors';
 
 export class ListProductsUseCase {
   constructor(private productRepo: IProductRepository) {}
@@ -13,7 +19,7 @@ export class GetProductUseCase {
 
   async execute(id: string) {
     const product = await this.productRepo.findById(id);
-    if (!product) throw new Error('Producto no encontrado');
+    if (!product) throw new NotFoundError('Producto no encontrado');
     return product;
   }
 }
@@ -28,6 +34,7 @@ export class CreateProductUseCase {
     image: string;
     categoryId: string;
     restaurantId: string;
+    available?: boolean;
   }) {
     return this.productRepo.create(data);
   }
@@ -46,5 +53,45 @@ export class ToggleAvailabilityUseCase {
 
   async execute(id: string) {
     return this.productRepo.toggleAvailability(id);
+  }
+}
+
+export class DeleteProductUseCase {
+  constructor(private productRepo: IProductRepository) {}
+
+  async execute(id: string) {
+    const product = await this.productRepo.findById(id);
+    if (!product) throw new NotFoundError('Producto no encontrado');
+    await this.productRepo.delete(id);
+  }
+}
+
+export class UpdateProductImageUseCase {
+  constructor(private productRepo: IProductRepository) {}
+
+  async execute(id: string, imageUrl: string) {
+    const product = await this.productRepo.findById(id);
+    if (!product) throw new NotFoundError('Producto no encontrado');
+    return this.productRepo.updateImage(id, imageUrl);
+  }
+}
+
+export class SetProductIngredientsUseCase {
+  constructor(private productRepo: IProductRepository) {}
+
+  async execute(id: string, ingredients: IngredientInput[]) {
+    const product = await this.productRepo.findById(id);
+    if (!product) throw new NotFoundError('Producto no encontrado');
+    return this.productRepo.setIngredients(id, ingredients);
+  }
+}
+
+export class SetProductModifierGroupsUseCase {
+  constructor(private productRepo: IProductRepository) {}
+
+  async execute(id: string, modifierGroups: ModifierGroupInput[]) {
+    const product = await this.productRepo.findById(id);
+    if (!product) throw new NotFoundError('Producto no encontrado');
+    return this.productRepo.setModifierGroups(id, modifierGroups);
   }
 }

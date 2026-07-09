@@ -8,6 +8,7 @@ export interface Restaurant {
   address: string;
   rating: number;
   deliveryMinutes: number;
+  monthlyGoal: number;
   accent: string;
   initials: string;
   status: RestaurantStatus;

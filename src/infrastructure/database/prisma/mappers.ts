@@ -91,6 +91,7 @@ export function mapRestaurant(record: PrismaRestaurant): Restaurant {
     address: record.address,
     rating: record.rating,
     deliveryMinutes: record.delivery_minutes,
+    monthlyGoal: record.monthly_goal,
     accent: record.accent,
     initials: record.initials,
     status: restaurantStatusMap[record.status],
@@ -112,6 +113,8 @@ export function mapCategory(record: PrismaCategory): Category {
     id: record.id,
     name: record.name,
     position: record.position,
+    image: record.image,
+    restaurantId: record.restaurant_id,
   };
 }
 
@@ -200,13 +203,13 @@ export function mapOrder(record: PrismaOrder & { items: PrismaOrderItem[] }): Or
     customerName: record.customer_name,
     address: record.address,
     phone: record.phone,
+    notes: record.notes,
+    zone: record.zone,
     status: orderStatusMap[record.status],
-    
-    // Payment config
+    statusEnteredAt: record.status_entered_at,
     paymentMethod: record.payment_method,
     paymentStatus: record.payment_status,
     paymentObservation: record.payment_observation,
-
     total: record.total,
     deliveryFee: record.delivery_fee,
     restaurantId: record.restaurant_id,

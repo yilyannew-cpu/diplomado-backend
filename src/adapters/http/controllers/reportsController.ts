@@ -5,7 +5,7 @@ export async function createReportController(req: Request, res: Response, next: 
   try {
     const report = await container.createUserReportUseCase.execute({
       reportedUser: req.body.reported_user,
-      reportedBy: req.user!.sub, // From JWT token
+      reportedBy: req.user!.id,
       reason: req.body.reason,
     });
     res.status(201).json(report);

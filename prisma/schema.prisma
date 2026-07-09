@@ -63,6 +63,7 @@ model User {
   restaurant_id String?
   restaurant    Restaurant? @relation(fields: [restaurant_id], references: [id])
   orders        Order[]    @relation("CourierOrders")
+  dispatches    Dispatch[] @relation("DispatchCourier")
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
 
@@ -77,6 +78,7 @@ model Restaurant {
   address          String
   rating           Float            @default(0)
   delivery_minutes Int              @default(30)
+  monthly_goal     Int              @default(18000000)
   accent           String           @default("#4f46e5")
   initials         String
   status           RestaurantStatus @default(Pendiente)
@@ -91,6 +93,10 @@ model Restaurant {
   users            User[]
   products         Product[]
   orders           Order[]
+  categories       Category[]
+  promotions       Promotion[]
+  reviews          Review[]
+  dispatches       Dispatch[]
   created_at       DateTime         @default(now())
   updated_at       DateTime         @updatedAt
 
@@ -98,11 +104,15 @@ model Restaurant {
 }
 
 model Category {
-  id       String    @id @default(uuid())
-  name     String    @unique
-  position Int       @default(0)
-  products Product[]
+  id            String     @id @default(uuid())
+  name          String
+  position      Int        @default(0)
+  image         String?
+  restaurant_id String
+  restaurant    Restaurant @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
+  products      Product[]
 
+  @@unique([restaurant_id, name])
   @@map("categories")
 }
 
@@ -120,6 +130,7 @@ model Product {
   ingredients   ProductIngredient[]
   modifier_groups ModifierGroup[]
   order_items   OrderItem[]
+  promotions    PromotionProduct[]
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
 
@@ -132,7 +143,10 @@ model Order {
   customer_name      String
   address            String
   phone              String
+  notes              String?
+  zone               String?
   status             OrderStatus @default(Recibido)
+  status_entered_at  DateTime    @default(now())
   payment_method     String      @default("Cash")
   payment_status     String      @default("Pending")
   payment_observation String?
@@ -143,6 +157,7 @@ model Order {
   delivery_person    User?       @relation("CourierOrders", fields: [delivery_person_id], references: [id])
   delivery_person_id String?
   items              OrderItem[]
+  dispatch           Dispatch?
   created_at         DateTime    @default(now())
   updated_at         DateTime    @updatedAt
 
@@ -213,6 +228,58 @@ model ModifierOption {
   group       ModifierGroup @relation(fields: [group_id], references: [id], onDelete: Cascade)
 
   @@map("modifier_options")
+}
+
+model Promotion {
+  id               String     @id @default(uuid())
+  name             String
+  discount_percent Int
+  start_date       DateTime
+  end_date         DateTime
+  active           Boolean    @default(true)
+  restaurant_id    String
+  restaurant       Restaurant @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
+  products         PromotionProduct[]
+  created_at       DateTime   @default(now())
+  updated_at       DateTime   @updatedAt
+
+  @@map("promotions")
+}
+
+model PromotionProduct {
+  id           String    @id @default(uuid())
+  promotion_id String
+  product_id   String
+  promotion    Promotion @relation(fields: [promotion_id], references: [id], onDelete: Cascade)
+  product      Product   @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([promotion_id, product_id])
+  @@map("promotion_products")
+}
+
+model Review {
+  id            String     @id @default(uuid())
+  rating        Float
+  comment       String?
+  customer_name String
+  restaurant_id String
+  restaurant    Restaurant @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
+  created_at    DateTime   @default(now())
+
+  @@map("reviews")
+}
+
+model Dispatch {
+  id         String   @id @default(uuid())
+  order_id   String   @unique
+  order      Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  courier_id String
+  courier    User     @relation("DispatchCourier", fields: [courier_id], references: [id])
+  restaurant_id String
+  restaurant Restaurant @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
+  dispatched_at DateTime @default(now())
+
+  @@map("dispatches")
 }
 
 

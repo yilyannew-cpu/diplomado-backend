@@ -15,7 +15,10 @@ export interface Order {
   customerName: string;
   address: string;
   phone: string;
+  notes?: string | null;
+  zone?: string | null;
   status: OrderStatus;
+  statusEnteredAt: Date;
   paymentMethod?: string;
   paymentStatus?: string;
   paymentObservation?: string | null;

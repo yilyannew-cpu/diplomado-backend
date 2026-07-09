@@ -1,7 +1,10 @@
 import { PrismaUserRepository } from './infrastructure/repositories/PrismaUserRepository';
 import { PrismaRestaurantRepository } from './infrastructure/repositories/PrismaRestaurantRepository';
 import { PrismaProductRepository } from './infrastructure/repositories/PrismaProductRepository';
+import { PrismaCategoryRepository } from './infrastructure/repositories/PrismaCategoryRepository';
 import { PrismaOrderRepository } from './infrastructure/repositories/PrismaOrderRepository';
+import { PrismaPromotionRepository } from './infrastructure/repositories/PrismaPromotionRepository';
+import { PrismaAnalyticsRepository } from './infrastructure/repositories/PrismaAnalyticsRepository';
 import { PrismaOperationsRepository } from './infrastructure/repositories/PrismaOperationsRepository';
 import { PrismaUserReportRepository } from './infrastructure/repositories/PrismaUserReportRepository';
 import { BcryptHashService } from './infrastructure/services/BcryptHashService';
@@ -19,6 +22,7 @@ import { ApproveUserUseCase } from './application/use-cases/users/ApproveUserUse
 import { RejectUserUseCase } from './application/use-cases/users/RejectUserUseCase';
 import { ListPendingRegistrationsUseCase } from './application/use-cases/users/ListPendingRegistrationsUseCase';
 import { ListRestaurantsUseCase } from './application/use-cases/restaurants/ListRestaurantsUseCase';
+import { GetRestaurantUseCase, UpdateRestaurantUseCase } from './application/use-cases/restaurants/RestaurantUseCases';
 import {
   ListUsersUseCase,
   GetUserByIdUseCase,
@@ -29,16 +33,48 @@ import {
   GetProductUseCase,
   CreateProductUseCase,
   UpdateProductUseCase,
-  ToggleAvailabilityUseCase
+  ToggleAvailabilityUseCase,
+  DeleteProductUseCase,
+  UpdateProductImageUseCase,
+  SetProductIngredientsUseCase,
+  SetProductModifierGroupsUseCase,
 } from './application/use-cases/products/ProductUseCases';
+import {
+  ListCategoriesUseCase,
+  CreateCategoryUseCase,
+  UpdateCategoryUseCase,
+  DeleteCategoryUseCase,
+  UpdateCategoryImageUseCase,
+} from './application/use-cases/categories/CategoryUseCases';
 import {
   CreateOrderUseCase,
   ListRestaurantOrdersUseCase,
   UpdateOrderStatusUseCase,
   AssignCourierUseCase,
+  BatchAssignCourierUseCase,
+  BatchDispatchOrdersUseCase,
   ListAvailableDeliveriesUseCase,
-  ListCourierOrdersUseCase
+  ListCourierOrdersUseCase,
 } from './application/use-cases/orders/OrderUseCases';
+import {
+  ListPromotionsUseCase,
+  GetPromotionUseCase,
+  CreatePromotionUseCase,
+  UpdatePromotionUseCase,
+  DeletePromotionUseCase,
+} from './application/use-cases/promotions/PromotionUseCases';
+import {
+  GetRestaurantDashboardUseCase,
+  GetSalesReportUseCase,
+  GetMonthlySalesUseCase,
+  GetCourierPayoutsUseCase,
+  ExportSalesCsvUseCase,
+  ListReviewsUseCase,
+  GetActiveDeliveriesUseCase,
+  ListDispatchesUseCase,
+  GetDispatchSummaryUseCase,
+  ListAvailableCouriersUseCase,
+} from './application/use-cases/analytics/AnalyticsUseCases';
 import {
   GetDashboardMetricsUseCase,
   GetSystemStatusUseCase,
@@ -53,7 +89,10 @@ import { ListUserReportsUseCase } from './application/use-cases/reports/ListUser
 const userRepository = new PrismaUserRepository();
 const restaurantRepository = new PrismaRestaurantRepository();
 const productRepository = new PrismaProductRepository();
+const categoryRepository = new PrismaCategoryRepository();
 const orderRepository = new PrismaOrderRepository();
+const promotionRepository = new PrismaPromotionRepository();
+const analyticsRepository = new PrismaAnalyticsRepository();
 const operationsRepository = new PrismaOperationsRepository();
 const userReportRepository = new PrismaUserReportRepository();
 const hashService = new BcryptHashService();
@@ -63,7 +102,10 @@ export const container = {
   userRepository,
   restaurantRepository,
   productRepository,
+  categoryRepository,
   orderRepository,
+  promotionRepository,
+  analyticsRepository,
   hashService,
   tokenService,
   loginUseCase: new LoginUseCase(userRepository, hashService, tokenService),
@@ -85,23 +127,52 @@ export const container = {
   listUsersUseCase: new ListUsersUseCase(userRepository),
   getUserByIdUseCase: new GetUserByIdUseCase(userRepository),
   updateUserUseCase: new UpdateUserUseCase(userRepository),
-  // Restaurant Use Cases
   listRestaurantsUseCase: new ListRestaurantsUseCase(restaurantRepository),
-  // Product Use Cases
+  getRestaurantUseCase: new GetRestaurantUseCase(restaurantRepository),
+  updateRestaurantUseCase: new UpdateRestaurantUseCase(restaurantRepository),
+
   listProductsUseCase: new ListProductsUseCase(productRepository),
   getProductUseCase: new GetProductUseCase(productRepository),
   createProductUseCase: new CreateProductUseCase(productRepository),
   updateProductUseCase: new UpdateProductUseCase(productRepository),
   toggleAvailabilityUseCase: new ToggleAvailabilityUseCase(productRepository),
+  deleteProductUseCase: new DeleteProductUseCase(productRepository),
+  updateProductImageUseCase: new UpdateProductImageUseCase(productRepository),
+  setProductIngredientsUseCase: new SetProductIngredientsUseCase(productRepository),
+  setProductModifierGroupsUseCase: new SetProductModifierGroupsUseCase(productRepository),
 
-  // Order Use Cases
+  listCategoriesUseCase: new ListCategoriesUseCase(categoryRepository),
+  createCategoryUseCase: new CreateCategoryUseCase(categoryRepository),
+  updateCategoryUseCase: new UpdateCategoryUseCase(categoryRepository),
+  deleteCategoryUseCase: new DeleteCategoryUseCase(categoryRepository),
+  updateCategoryImageUseCase: new UpdateCategoryImageUseCase(categoryRepository),
+
   createOrderUseCase: new CreateOrderUseCase(orderRepository, productRepository),
   listRestaurantOrdersUseCase: new ListRestaurantOrdersUseCase(orderRepository),
   updateOrderStatusUseCase: new UpdateOrderStatusUseCase(orderRepository),
   assignCourierUseCase: new AssignCourierUseCase(orderRepository),
+  batchAssignCourierUseCase: new BatchAssignCourierUseCase(orderRepository),
+  batchDispatchOrdersUseCase: new BatchDispatchOrdersUseCase(orderRepository),
   listAvailableDeliveriesUseCase: new ListAvailableDeliveriesUseCase(orderRepository),
   listCourierOrdersUseCase: new ListCourierOrdersUseCase(orderRepository),
-  // Operations / Superadmin dashboard
+
+  listPromotionsUseCase: new ListPromotionsUseCase(promotionRepository),
+  getPromotionUseCase: new GetPromotionUseCase(promotionRepository),
+  createPromotionUseCase: new CreatePromotionUseCase(promotionRepository, productRepository),
+  updatePromotionUseCase: new UpdatePromotionUseCase(promotionRepository, productRepository),
+  deletePromotionUseCase: new DeletePromotionUseCase(promotionRepository),
+
+  getRestaurantDashboardUseCase: new GetRestaurantDashboardUseCase(analyticsRepository),
+  getSalesReportUseCase: new GetSalesReportUseCase(analyticsRepository),
+  getMonthlySalesUseCase: new GetMonthlySalesUseCase(analyticsRepository),
+  getCourierPayoutsUseCase: new GetCourierPayoutsUseCase(analyticsRepository),
+  exportSalesCsvUseCase: new ExportSalesCsvUseCase(analyticsRepository),
+  listReviewsUseCase: new ListReviewsUseCase(analyticsRepository),
+  getActiveDeliveriesUseCase: new GetActiveDeliveriesUseCase(analyticsRepository),
+  listDispatchesUseCase: new ListDispatchesUseCase(analyticsRepository),
+  getDispatchSummaryUseCase: new GetDispatchSummaryUseCase(analyticsRepository),
+  listAvailableCouriersUseCase: new ListAvailableCouriersUseCase(analyticsRepository),
+
   getDashboardMetricsUseCase: new GetDashboardMetricsUseCase(operationsRepository),
   getSystemStatusUseCase: new GetSystemStatusUseCase(operationsRepository),
   listOrdersUseCase: new ListOrdersUseCase(operationsRepository),

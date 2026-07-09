@@ -79,4 +79,67 @@ export class PrismaProductRepository implements IProductRepository {
     });
     return mapProduct(record as any);
   }
+
+  async delete(id: string) {
+    await prisma.product.delete({ where: { id } });
+  }
+
+  async updateImage(id: string, imageUrl: string) {
+    const record = await prisma.product.update({
+      where: { id },
+      data: { image: imageUrl },
+    });
+    return mapProduct(record as any);
+  }
+
+  async setIngredients(productId: string, ingredients: { name: string; available: boolean }[]) {
+    await prisma.$transaction(async (tx) => {
+      await tx.productIngredient.deleteMany({ where: { product_id: productId } });
+
+      for (const ing of ingredients) {
+        let ingredient = await tx.ingredient.findFirst({ where: { name: ing.name } });
+        if (!ingredient) {
+          ingredient = await tx.ingredient.create({
+            data: { name: ing.name, available: ing.available },
+          });
+        } else {
+          ingredient = await tx.ingredient.update({
+            where: { id: ingredient.id },
+            data: { available: ing.available },
+          });
+        }
+        await tx.productIngredient.create({
+          data: { product_id: productId, ingredient_id: ingredient.id },
+        });
+      }
+    });
+
+    return (await this.findById(productId))!;
+  }
+
+  async setModifierGroups(productId: string, groups: { name: string; min_selections: number; max_selections: number; options: { name: string; price_extra: number; available: boolean }[] }[]) {
+    await prisma.$transaction(async (tx) => {
+      await tx.modifierGroup.deleteMany({ where: { product_id: productId } });
+
+      for (const group of groups) {
+        await tx.modifierGroup.create({
+          data: {
+            name: group.name,
+            product_id: productId,
+            min_selections: group.min_selections,
+            max_selections: group.max_selections,
+            options: {
+              create: group.options.map((o) => ({
+                name: o.name,
+                price_extra: o.price_extra,
+                available: o.available,
+              })),
+            },
+          },
+        });
+      }
+    });
+
+    return (await this.findById(productId))!;
+  }
 }

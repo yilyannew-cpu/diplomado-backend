@@ -7,9 +7,13 @@ import { systemRouter } from './routes/systemRoutes';
 import { productsRouter } from './routes/productsRoutes';
 import { ordersRouter } from './routes/ordersRoutes';
 import { restaurantsRouter } from './routes/restaurantsRoutes';
+import { categoriesRouter } from './routes/categoriesRoutes';
+import { promotionsRouter } from './routes/promotionsRoutes';
+import { uploadsRouter } from './routes/uploadsRoutes';
 import { couriersRouter } from './routes/couriersRoutes';
 import { reportsRouter } from './routes/reportsRoutes';
 import { errorHandler } from './middleware/errorHandler';
+import { UPLOAD_DIR } from '../../infrastructure/services/UploadService';
 
 export function createApp() {
   const app = express();
@@ -24,7 +28,6 @@ export function createApp() {
       origin: (origin, callback) => {
         if (!origin) return callback(null, true);
         if (corsOrigins.includes(origin)) return callback(null, true);
-        // Permite previews y produccion en Vercel
         if (origin.endsWith('.vercel.app')) return callback(null, true);
         callback(null, false);
       },
@@ -34,6 +37,7 @@ export function createApp() {
   );
 
   app.use(express.json());
+  app.use('/uploads', express.static(UPLOAD_DIR));
 
   app.get('/', (_req, res) => {
     res.json({
@@ -41,7 +45,7 @@ export function createApp() {
       version: '1.0.0',
       status: 'ok',
       health: '/api/v1/health',
-      docs: 'FFCore API v1 - Auth, Registros, Operaciones, Productos y Órdenes',
+      docs: 'FFCore API v1 - Panel Admin Restaurante',
     });
   });
 
@@ -60,8 +64,11 @@ export function createApp() {
   app.use('/api/v1/system', systemRouter);
   app.use('/api/v1/couriers', couriersRouter);
   app.use('/api/v1/restaurants', restaurantsRouter);
+  app.use('/api/v1/categories', categoriesRouter);
+  app.use('/api/v1/promotions', promotionsRouter);
   app.use('/api/v1/products', productsRouter);
   app.use('/api/v1/orders', ordersRouter);
+  app.use('/api/v1/uploads', uploadsRouter);
 
   app.use(errorHandler);
 
