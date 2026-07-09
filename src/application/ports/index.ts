@@ -62,10 +62,21 @@ export interface CreateRestaurantData {
   status?: import('../../domain/enums').RestaurantStatus;
 }
 
+export interface UpdateRestaurantData {
+  name?: string;
+  tagline?: string | null;
+  city?: string;
+  address?: string;
+  deliveryMinutes?: number;
+  monthlyGoal?: number;
+  accent?: string;
+}
+
 export interface IRestaurantRepository {
   findById(id: string): Promise<Restaurant | null>;
   listAll(): Promise<Restaurant[]>;
   create(data: CreateRestaurantData): Promise<Restaurant>;
+  update(id: string, data: UpdateRestaurantData): Promise<Restaurant>;
   updateStatus(id: string, status: import('../../domain/enums').RestaurantStatus): Promise<Restaurant>;
   createWithAdminUser(
     restaurantData: CreateRestaurantData,

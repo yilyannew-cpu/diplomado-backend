@@ -4,26 +4,40 @@ import { OrderStatus } from '../../domain/enums';
 export interface CreateOrderItemData {
   productId: string;
   quantity: number;
-  customizations?: Record<string, any>;
+  customizations?: Record<string, unknown>;
 }
 
 export interface CreateOrderData {
   customerName: string;
   address: string;
   phone: string;
+  notes?: string;
+  zone?: string;
   paymentMethod?: string;
   paymentStatus?: string;
   restaurantId: string;
   items: CreateOrderItemData[];
 }
 
+export interface ListRestaurantOrdersFilters {
+  restaurantId: string;
+  statuses?: OrderStatus[];
+}
+
+export interface OrderWithProductNames extends Order {
+  items: Array<Order['items'][number] & { productName: string }>;
+}
+
 export interface IOrderRepository {
-  create(data: CreateOrderData & { code: string; total: number; deliveryFee: number; itemsWithPrice: { productId: string; quantity: number; unitPrice: number; customizations?: Record<string, any> }[] }): Promise<Order>;
+  create(data: CreateOrderData & { code: string; total: number; deliveryFee: number; itemsWithPrice: { productId: string; quantity: number; unitPrice: number; customizations?: Record<string, unknown> }[] }): Promise<Order>;
+  findById(id: string): Promise<Order | null>;
   findByCode(code: string): Promise<Order | null>;
-  listByRestaurant(restaurantId: string): Promise<Order[]>;
+  listByRestaurant(filters: ListRestaurantOrdersFilters): Promise<OrderWithProductNames[]>;
   updateStatus(id: string, status: OrderStatus): Promise<Order>;
   assignCourier(id: string, courierId: string): Promise<Order>;
-  listAvailableForDelivery(): Promise<Order[]>;
+  dispatchOrders(orderIds: string[], restaurantId: string): Promise<Order[]>;
+  batchAssignCourier(orderIds: string[], courierId: string): Promise<Order[]>;
+  listAvailableForDelivery(restaurantId?: string): Promise<Order[]>;
   listByCourier(courierId: string): Promise<Order[]>;
   countAll(): Promise<number>;
 }

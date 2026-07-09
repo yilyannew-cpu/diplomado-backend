@@ -30,6 +30,13 @@ app.set('io', io);
 io.on('connection', (socket) => {
   console.log(`[Socket] Nuevo cliente conectado: ${socket.id}`);
 
+  socket.on('join_restaurant', (restaurantId: string) => {
+    if (restaurantId) {
+      socket.join(`restaurant:${restaurantId}`);
+      console.log(`[Socket] ${socket.id} unido a restaurant:${restaurantId}`);
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log(`[Socket] Cliente desconectado: ${socket.id}`);
   });

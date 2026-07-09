@@ -1,6 +1,7 @@
 import {
   IRestaurantRepository,
   CreateRestaurantData,
+  UpdateRestaurantData,
 } from '../../application/ports';
 import { CreateUserData } from '../../application/ports';
 import { RestaurantStatus } from '../../domain/enums';
@@ -40,6 +41,22 @@ export class PrismaRestaurantRepository implements IRestaurantRepository {
     const record = await prisma.restaurant.update({
       where: { id },
       data: { status: restaurantStatusToPrisma[status] },
+    });
+    return mapRestaurant(record);
+  }
+
+  async update(id: string, data: UpdateRestaurantData) {
+    const record = await prisma.restaurant.update({
+      where: { id },
+      data: {
+        name: data.name,
+        tagline: data.tagline,
+        city: data.city,
+        address: data.address,
+        delivery_minutes: data.deliveryMinutes,
+        monthly_goal: data.monthlyGoal,
+        accent: data.accent,
+      },
     });
     return mapRestaurant(record);
   }
