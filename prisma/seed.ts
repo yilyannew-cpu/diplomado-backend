@@ -6,6 +6,10 @@ const prisma = new PrismaClient();
 async function main() {
   // Limpia datos sin tocar el esquema (orden por dependencias FK)
   await prisma.orderItem.deleteMany();
+  await prisma.dispatch.deleteMany();
+  await prisma.promotionProduct.deleteMany();
+  await prisma.promotion.deleteMany();
+  await prisma.review.deleteMany();
   await prisma.order.deleteMany();
   await prisma.modifierOption.deleteMany();
   await prisma.modifierGroup.deleteMany();
@@ -89,17 +93,47 @@ async function main() {
   const users = [
     {
       name: 'Laura Martínez',
-      email: 'cliente@ffcore.co',
+      email: 'cliente1@ffcore.co',
       role: Role.cliente,
       status: UserStatus.Activo,
       phone: '+57 310 555 0102',
     },
     {
+      name: 'Juan Pablo Montoya',
+      email: 'cliente2@ffcore.co',
+      role: Role.cliente,
+      status: UserStatus.Activo,
+      phone: '+57 315 555 0544',
+    },
+    {
+      name: 'Valeria Ospina',
+      email: 'cliente3@ffcore.co',
+      role: Role.cliente,
+      status: UserStatus.Suspendido,
+      phone: '+57 317 555 0766',
+    },
+    {
       name: 'Carlos Restrepo',
-      email: 'admin@ffcore.co',
+      email: 'admin1@ffcore.co',
       role: Role.admin,
       status: UserStatus.Activo,
       phone: '+57 311 555 0211',
+      restaurant_id: restaurant.id,
+    },
+    {
+      name: 'Sede Caobos',
+      email: 'admin2@ffcore.co',
+      role: Role.admin,
+      status: UserStatus.Activo,
+      phone: '+57 607 555 0877',
+      restaurant_id: restaurant.id,
+    },
+    {
+      name: 'Sede Centro',
+      email: 'admin3@ffcore.co',
+      role: Role.admin,
+      status: UserStatus.Activo,
+      phone: '+57 607 555 0888',
       restaurant_id: restaurant.id,
     },
     {
@@ -110,6 +144,7 @@ async function main() {
       phone: '+57 313 555 0433',
       vehicle: 'Moto AKT — PLA-23H',
       document_id: '1035678901',
+      restaurant_id: restaurant.id,
     },
     {
       name: 'Super Admin',
@@ -117,6 +152,33 @@ async function main() {
       role: Role.superadmin,
       status: UserStatus.Activo,
       phone: '+57 300 555 0001',
+    },
+    {
+      name: 'Mariana Gil',
+      email: 'domi1@ffcore.co',
+      role: Role.domiciliario,
+      status: UserStatus.Activo,
+      phone: '+57 313 555 0433',
+      vehicle: 'Moto AKT — PLA-23H',
+      document_id: '1035678901',
+    },
+    {
+      name: 'Seba Courier',
+      email: 'domi2@ffcore.co',
+      role: Role.domiciliario,
+      status: UserStatus.Activo,
+      phone: '+57 316 555 0655',
+      vehicle: 'Bici eléctrica — BIC-09',
+      document_id: '1020456789',
+    },
+    {
+      name: 'Camilo Repartidor',
+      email: 'domi3@ffcore.co',
+      role: Role.domiciliario,
+      status: UserStatus.Activo,
+      phone: '+57 318 555 0999',
+      vehicle: 'Moto Yamaha — XYZ-123',
+      document_id: '1055555555',
     },
   ];
 
@@ -130,27 +192,40 @@ async function main() {
   }
 
   // --- CATEGORIES & PRODUCTS ---
-  const categories = [
-    { name: 'Platos principales', position: 1 },
-    { name: 'Acompañamientos', position: 2 },
-    { name: 'Bebidas', position: 3 },
-    { name: 'Postres', position: 4 },
-    { name: 'Adiciones', position: 5 },
+  const categoryDefs = [
+    { name: 'Entradas', position: 0, image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Platos principales', position: 1, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Acompañamientos', position: 2, image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Bebidas', position: 3, image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Postres', position: 4, image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Adiciones', position: 5, image: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=400&q=80' },
   ];
 
-  for (const cat of categories) {
-    await prisma.category.upsert({
-      where: { name: cat.name },
-      update: {},
-      create: cat,
-    });
+  const restaurantIds = [restaurant.id, paisaPollo.id, verdebrasa.id, dulcecaribe.id];
+  const categoryMap = new Map<string, string>();
+
+  for (const restId of restaurantIds) {
+    for (const cat of categoryDefs) {
+      const created = await prisma.category.create({
+        data: {
+          name: cat.name,
+          position: cat.position,
+          image: cat.image,
+          restaurant_id: restId,
+        },
+      });
+      categoryMap.set(`${restId}:${cat.name}`, created.id);
+    }
   }
 
-  const platosId = (await prisma.category.findUnique({ where: { name: 'Platos principales' } }))!.id;
-  const acompId = (await prisma.category.findUnique({ where: { name: 'Acompañamientos' } }))!.id;
-  const bebidasId = (await prisma.category.findUnique({ where: { name: 'Bebidas' } }))!.id;
-  const postresId = (await prisma.category.findUnique({ where: { name: 'Postres' } }))!.id;
-  const adicionesId = (await prisma.category.findUnique({ where: { name: 'Adiciones' } }))!.id;
+  const platosId = categoryMap.get(`${restaurant.id}:Platos principales`)!;
+  const acompId = categoryMap.get(`${restaurant.id}:Acompañamientos`)!;
+  const bebidasId = categoryMap.get(`${dulcecaribe.id}:Bebidas`)!;
+  const postresId = categoryMap.get(`${dulcecaribe.id}:Postres`)!;
+  const adicionesId = categoryMap.get(`${restaurant.id}:Adiciones`)!;
+  const paisaPlatosId = categoryMap.get(`${paisaPollo.id}:Platos principales`)!;
+  const paisaAcompId = categoryMap.get(`${paisaPollo.id}:Acompañamientos`)!;
+  const verdePlatosId = categoryMap.get(`${verdebrasa.id}:Platos principales`)!;
 
   const products = [
     {
@@ -177,7 +252,7 @@ async function main() {
       id: 'prod-03',
       name: 'Chicken Buffalo',
       price: 26900,
-      category_id: platosId,
+      category_id: paisaPlatosId,
       description: 'Pollo crocante, salsa buffalo, blue cheese y apio.',
       image: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?auto=format&fit=crop&w=800&q=80',
       available: false, // Este debe estar oculto en frontend
@@ -187,7 +262,7 @@ async function main() {
       id: 'prod-04',
       name: 'Veggie Supreme',
       price: 22500,
-      category_id: platosId,
+      category_id: verdePlatosId,
       description: 'Medallón de garbanzo, aguacate, rúgula y mayo de chipotle.',
       image: 'https://images.unsplash.com/photo-1525059696034-4967a729002e?auto=format&fit=crop&w=800&q=80',
       available: true,
@@ -207,7 +282,7 @@ async function main() {
       id: 'prod-06',
       name: 'Aros de Cebolla',
       price: 8900,
-      category_id: acompId,
+      category_id: paisaAcompId,
       description: 'Cebolla dulce empanizada en panko crocante.',
       image: 'https://images.unsplash.com/photo-1639024471283-03518883512d?auto=format&fit=crop&w=800&q=80',
       available: true,
@@ -342,7 +417,83 @@ async function main() {
     });
   }
 
-  console.log('Seed completado: 4 usuarios (1 por rol), restaurantes, productos y modificadores. Password: demo');
+  // --- REVIEWS ---
+  const reviewSamples = [
+    { rating: 5, comment: 'Excelente Monster Bacon', customer_name: 'Ana Gómez' },
+    { rating: 4.5, comment: 'Muy buen servicio', customer_name: 'Luis Pérez' },
+    { rating: 4, comment: 'Llegó caliente y a tiempo', customer_name: 'María López' },
+  ];
+  for (const r of reviewSamples) {
+    await prisma.review.create({
+      data: { ...r, restaurant_id: restaurant.id },
+    });
+  }
+
+  // --- SAMPLE ORDERS ---
+  const domiciliario = await prisma.user.findUnique({ where: { email: 'domi@ffcore.co' } });
+  await prisma.order.create({
+    data: {
+      code: 'PED-101',
+      customer_name: 'Juan Pablo Montoya',
+      address: 'Calle 15 #11-45',
+      phone: '+573155550544',
+      notes: 'Torre B',
+      zone: 'El Poblado',
+      status: 'EnPreparacion',
+      total: 52700,
+      delivery_fee: 5000,
+      restaurant_id: restaurant.id,
+      items: {
+        create: [{
+          product_id: 'prod-02',
+          quantity: 1,
+          unit_price: 32700,
+          customizations: {
+            removed_ingredients: ['Cebolla grillé'],
+            added_modifiers: { Adiciones: ['Tocino crujiente'] },
+            extra_price: 4200,
+          },
+        }],
+      },
+    },
+  });
+
+  await prisma.order.create({
+    data: {
+      code: 'PED-102',
+      customer_name: 'Andrés Quintero',
+      address: 'Cra 7 #16-21',
+      phone: '+573155550545',
+      zone: 'San Luis',
+      status: 'Listo',
+      total: 57000,
+      delivery_fee: 6000,
+      restaurant_id: restaurant.id,
+      delivery_person_id: domiciliario?.id,
+      items: {
+        create: [{
+          product_id: 'prod-01',
+          quantity: 2,
+          unit_price: 24900,
+        }],
+      },
+    },
+  });
+
+  // --- PROMOTION ---
+  await prisma.promotion.create({
+    data: {
+      name: '2x1 Monster Bacon',
+      discount_percent: 50,
+      start_date: new Date('2025-07-01'),
+      end_date: new Date('2026-12-31'),
+      active: true,
+      restaurant_id: restaurant.id,
+      products: { create: [{ product_id: 'prod-01' }] },
+    },
+  });
+
+  console.log('Seed completado: usuarios, restaurantes, categorías, productos, órdenes demo, promociones e ingredientes. Password: demo');
 }
 
 main()

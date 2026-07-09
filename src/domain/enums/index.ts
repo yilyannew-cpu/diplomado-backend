@@ -33,7 +33,6 @@ export enum OrderStatus {
   ENTREGADO = 'Entregado',
   CANCELADO = 'Cancelado',
 }
-
 export enum CourierAvailability {
   DISPONIBLE = 'disponible',
   EN_RUTA = 'en_ruta',

@@ -127,3 +127,161 @@ export const idParamSchema = z.object({
 export const listOrdersQuerySchema = z.object({
   status: z.nativeEnum(OrderStatus).optional(),
 });
+
+export const restaurantIdParamSchema = z.object({
+  restaurantId: z.string().min(1),
+});
+
+export const categoryIdParamSchema = z.object({
+  categoryId: z.string().uuid('ID inválido'),
+});
+
+export const promotionIdParamSchema = z.object({
+  promotionId: z.string().uuid('ID inválido'),
+});
+
+export const updateRestaurantSchema = z.object({
+  name: z.string().min(2).max(120).optional(),
+  tagline: z.string().max(200).nullable().optional(),
+  city: z.string().min(1).max(100).optional(),
+  address: z.string().min(1).max(255).optional(),
+  delivery_minutes: z.number().int().min(10).max(120).optional(),
+  monthly_goal: z.number().int().min(0).optional(),
+  accent: z.string().max(20).optional(),
+});
+
+export const createCategorySchema = z.object({
+  name: z.string().min(2).max(80),
+  position: z.number().int().min(0).optional(),
+  image: z.string().url().nullable().optional(),
+});
+
+export const updateCategorySchema = z.object({
+  name: z.string().min(2).max(80).optional(),
+  position: z.number().int().min(0).optional(),
+  image: z.string().url().nullable().optional(),
+});
+
+export const createProductSchema = z.object({
+  name: z.string().min(2).max(120),
+  description: z.string().min(1).max(500),
+  price: z.number().int().min(0),
+  image: z.string().url(),
+  category_id: z.string().uuid().optional(),
+  categoryId: z.string().uuid().optional(),
+  restaurant_id: z.string().min(1).optional(),
+  restaurantId: z.string().min(1).optional(),
+  available: z.boolean().optional(),
+});
+
+export const updateProductSchema = z.object({
+  name: z.string().min(2).max(120).optional(),
+  description: z.string().min(1).max(500).optional(),
+  price: z.number().int().min(0).optional(),
+  image: z.string().url().optional(),
+  category_id: z.string().uuid().optional(),
+  categoryId: z.string().uuid().optional(),
+  available: z.boolean().optional(),
+});
+
+export const productIngredientsSchema = z.object({
+  ingredients: z.array(z.object({
+    name: z.string().min(1),
+    available: z.boolean(),
+  })),
+});
+
+export const productModifierGroupsSchema = z.object({
+  modifier_groups: z.array(z.object({
+    name: z.string().min(1),
+    min_selections: z.number().int().min(0),
+    max_selections: z.number().int().min(0),
+    options: z.array(z.object({
+      name: z.string().min(1),
+      price_extra: z.number().int().min(0),
+      available: z.boolean(),
+    })),
+  })).optional(),
+  modifierGroups: z.array(z.object({
+    name: z.string().min(1),
+    min_selections: z.number().int().min(0),
+    max_selections: z.number().int().min(0),
+    options: z.array(z.object({
+      name: z.string().min(1),
+      price_extra: z.number().int().min(0),
+      available: z.boolean(),
+    })),
+  })).optional(),
+});
+
+export const createPromotionSchema = z.object({
+  name: z.string().min(2).max(120),
+  discount_percent: z.number().int().min(1).max(90),
+  product_ids: z.array(z.string().uuid()).min(1),
+  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  active: z.boolean().optional(),
+});
+
+export const updatePromotionSchema = z.object({
+  name: z.string().min(2).max(120).optional(),
+  discount_percent: z.number().int().min(1).max(90).optional(),
+  product_ids: z.array(z.string().uuid()).min(1).optional(),
+  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  active: z.boolean().optional(),
+});
+
+export const updateOrderStatusSchema = z.object({
+  status: z.nativeEnum(OrderStatus),
+});
+
+export const assignCourierSchema = z.object({
+  courier_id: z.string().uuid().optional(),
+  courierId: z.string().uuid().optional(),
+}).refine((d) => d.courier_id || d.courierId, { message: 'courier_id es requerido' });
+
+export const batchOrdersSchema = z.object({
+  order_ids: z.array(z.string().uuid()).min(1).optional(),
+  orderIds: z.array(z.string().uuid()).min(1).optional(),
+  courier_id: z.string().uuid().optional(),
+  courierId: z.string().uuid().optional(),
+}).refine((d) => (d.order_ids?.length || d.orderIds?.length), { message: 'order_ids es requerido' })
+  .refine((d) => d.courier_id || d.courierId, { message: 'courier_id es requerido' });
+
+export const batchDispatchSchema = z.object({
+  order_ids: z.array(z.string().uuid()).min(1).optional(),
+  orderIds: z.array(z.string().uuid()).min(1).optional(),
+  restaurant_id: z.string().min(1).optional(),
+  restaurantId: z.string().min(1).optional(),
+}).refine((d) => (d.order_ids?.length || d.orderIds?.length), { message: 'order_ids es requerido' });
+
+export const restaurantOrdersQuerySchema = z.object({
+  status: z.string().optional(),
+});
+
+export const reviewsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
+export const salesReportQuerySchema = z.object({
+  preset: z.enum(['today', 'week', 'month', 'year', 'custom']).optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+
+export const dateRangeQuerySchema = z.object({
+  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+export const dispatchQuerySchema = z.object({
+  from: z.string().optional(),
+  to: z.string().optional(),
+  period: z.enum(['today', 'month', 'year']).optional(),
+});
+
+export const couriersAvailableQuerySchema = z.object({
+  batch_size: z.coerce.number().int().min(1).max(10).optional(),
+});
