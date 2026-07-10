@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc",
-    "build:render": "prisma generate && node scripts/migrate-deploy.cjs && tsc",
-    "start": "node dist/server.js",
-    "start:render": "node dist/server.js",
+    "build:render": "prisma generate && tsc",
+    "start": "node scripts/migrate-deploy.cjs && node dist/server.js",
+    "start:render": "node scripts/migrate-deploy.cjs && node dist/server.js",
     "setup": "node scripts/setup.cjs",
     "setup:clean": "node scripts/setup.cjs --clean",
     "setup:docker": "docker compose up -d && node scripts/setup.cjs",

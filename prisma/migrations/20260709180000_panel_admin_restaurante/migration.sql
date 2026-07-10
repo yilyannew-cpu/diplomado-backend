@@ -7,9 +7,19 @@ ALTER TABLE "restaurants" ADD COLUMN IF NOT EXISTS "monthly_goal" INTEGER NOT NU
 ALTER TABLE "categories" ADD COLUMN IF NOT EXISTS "image" TEXT;
 ALTER TABLE "categories" ADD COLUMN IF NOT EXISTS "restaurant_id" TEXT;
 
-UPDATE "categories" SET "restaurant_id" = 'rest-ffcore' WHERE "restaurant_id" IS NULL;
+UPDATE "categories" SET "restaurant_id" = (
+  SELECT id FROM "restaurants" ORDER BY "created_at" ASC LIMIT 1
+)
+WHERE "restaurant_id" IS NULL
+  AND EXISTS (SELECT 1 FROM "restaurants");
 
-ALTER TABLE "categories" ALTER COLUMN "restaurant_id" SET NOT NULL;
+DELETE FROM "categories" WHERE "restaurant_id" IS NULL;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM "categories" WHERE "restaurant_id" IS NULL) THEN
+    ALTER TABLE "categories" ALTER COLUMN "restaurant_id" SET NOT NULL;
+  END IF;
+END $$;
 
 ALTER TABLE "categories" DROP CONSTRAINT IF EXISTS "categories_name_key";
 DROP INDEX IF EXISTS "categories_name_key";
