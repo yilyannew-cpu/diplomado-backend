@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { container } from '../../../container';
 import { serializeCategories, serializeCategory } from '../serializers/categorySerializer';
 import { param } from '../utils/routeParams';
-import { buildPublicUrl } from '../../../infrastructure/services/UploadService';
+import { filePathToDataUrl } from '../../../infrastructure/services/UploadService';
 
 export async function listCategoriesController(req: Request, res: Response, next: NextFunction) {
   try {
@@ -56,7 +56,7 @@ export async function uploadCategoryImageController(req: Request, res: Response,
     if (!req.file) {
       return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Archivo requerido' });
     }
-    const url = buildPublicUrl(req, req.file.filename);
+    const url = filePathToDataUrl(req.file.path, req.file.mimetype);
     const category = await container.updateCategoryImageUseCase.execute(param(req, 'categoryId'), url);
     res.json(serializeCategory({ ...category, productCount: 0 }));
   } catch (error) {

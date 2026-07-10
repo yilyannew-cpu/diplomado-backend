@@ -14,6 +14,18 @@ const phoneSchema = z
     message: 'Formato de teléfono inválido. Use +57...',
   });
 
+/** http(s), /uploads/... o data:image (persistente en Neon tras redeploy de Render). */
+const imageUrlSchema = z
+  .string()
+  .min(1)
+  .refine(
+    (v) =>
+      v.startsWith('data:image/') ||
+      v.startsWith('/uploads/') ||
+      /^https?:\/\//i.test(v),
+    { message: 'URL de imagen inválida' }
+  );
+
 export const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(1, 'La contraseña es requerida'),
@@ -153,20 +165,20 @@ export const updateRestaurantSchema = z.object({
 export const createCategorySchema = z.object({
   name: z.string().min(2).max(80),
   position: z.number().int().min(0).optional(),
-  image: z.string().url().nullable().optional(),
+  image: imageUrlSchema.nullable().optional(),
 });
 
 export const updateCategorySchema = z.object({
   name: z.string().min(2).max(80).optional(),
   position: z.number().int().min(0).optional(),
-  image: z.string().url().nullable().optional(),
+  image: imageUrlSchema.nullable().optional(),
 });
 
 export const createProductSchema = z.object({
   name: z.string().min(2).max(120),
   description: z.string().min(1).max(500),
   price: z.number().int().min(0),
-  image: z.string().url(),
+  image: imageUrlSchema,
   category_id: z.string().uuid().optional(),
   categoryId: z.string().uuid().optional(),
   restaurant_id: z.string().min(1).optional(),
@@ -178,7 +190,7 @@ export const updateProductSchema = z.object({
   name: z.string().min(2).max(120).optional(),
   description: z.string().min(1).max(500).optional(),
   price: z.number().int().min(0).optional(),
-  image: z.string().url().optional(),
+  image: imageUrlSchema.optional(),
   category_id: z.string().uuid().optional(),
   categoryId: z.string().uuid().optional(),
   available: z.boolean().optional(),
@@ -288,9 +300,15 @@ export const couriersAvailableQuerySchema = z.object({
 
 const orderCustomizationSchema = z
   .object({
+    addition_ids: z.array(z.string().min(1)).optional(),
+    side_ids: z.array(z.string().min(1)).optional(),
+    drink_ids: z.array(z.string().min(1)).optional(),
+    special_instructions: z.string().max(500).optional(),
+    /** Informativo; el servidor recalcula. */
+    extra_price: z.number().int().min(0).optional(),
+    /** Compatibilidad pedidos antiguos */
     removed_ingredients: z.array(z.string()).optional(),
     added_modifiers: z.record(z.array(z.string())).optional(),
-    extra_price: z.number().int().min(0).optional(),
   })
   .optional();
 

@@ -63,7 +63,14 @@ GET /products?restaurantId=rest-ffcore&available=true
 GET /products/prod-01
 ```
 
-Incluye `ingredients`, `modifier_groups` para el modal de customización.
+Para el modal de personalización del cliente **no se requieren** `ingredients` / `modifier_groups`.
+Las extras se toman del catálogo del restaurante:
+
+```http
+GET /products?restaurantId=rest-ffcore&available=true
+```
+
+Filtrar por `category_name`: `Adiciones`, `Acompañamientos`, `Bebidas`.
 
 ### 4. Crear pedido
 
@@ -73,6 +80,17 @@ Content-Type: application/json
 ```
 
 **No requiere token.**
+
+La personalización del plato principal usa productos del menú del mismo restaurante:
+
+| Campo | Categoría esperada | Obligatorio |
+|-------|--------------------|-------------|
+| `addition_ids` | Adiciones | No |
+| `side_ids` | Acompañamientos | No |
+| `drink_ids` | Bebidas | No |
+| `special_instructions` | Texto libre | No |
+
+El servidor **valida** que cada ID exista, esté disponible, pertenezca al `restaurant_id` y tenga la categoría correcta. Luego **recalcula** `extra_price` (ignora el valor enviado por el cliente) y persiste nombres/precios en el JSON de la línea.
 
 ```json
 {
@@ -87,14 +105,46 @@ Content-Type: application/json
       "product_id": "prod-01",
       "quantity": 1,
       "customizations": {
-        "removed_ingredients": ["Cebolla grillé"],
-        "added_modifiers": { "Adiciones": ["Tocino crujiente"] },
-        "extra_price": 4200
+        "addition_ids": ["prod-10"],
+        "side_ids": ["prod-05"],
+        "drink_ids": ["prod-07"],
+        "special_instructions": "Sin cebolla / Sin azúcar",
+        "extra_price": 8500
       }
     }
   ]
 }
 ```
+
+**Respuesta de cada ítem** (serializer / WebSocket / track):
+
+```json
+{
+  "line_id": "...",
+  "product_id": "prod-01",
+  "product_name": "Monster Bacon",
+  "quantity": 1,
+  "unit_price": 33600,
+  "customizations": {
+    "addition_ids": ["prod-10"],
+    "side_ids": ["prod-05"],
+    "drink_ids": ["prod-07"],
+    "additions": [{ "product_id": "prod-10", "name": "Tocino crujiente", "price": 4200 }],
+    "sides": [{ "product_id": "prod-05", "name": "Papas Rústicas", "price": 8000 }],
+    "drinks": [{ "product_id": "prod-07", "name": "Limonada", "price": 5000 }],
+    "special_instructions": "Sin cebolla / Sin azúcar",
+    "extra_price": 17200
+  }
+}
+```
+
+Endpoints que reflejan el mismo shape (sin cambio de ruta):
+
+- `GET /orders/track/:code`
+- `GET /orders/restaurant/:restaurantId`
+- WebSocket `new_order` / `order_status_changed`
+
+`GET /products?restaurantId=` no cambia: el cliente filtra por `category_name` (`Adiciones`, `Acompañamientos`, `Bebidas`).
 
 **IDs de producto en seed (rest-ffcore):**
 
