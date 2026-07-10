@@ -1,4 +1,6 @@
 import { IAnalyticsRepository } from '../../ports/IAnalyticsRepository';
+import { IRestaurantRepository } from '../../ports';
+import { NotFoundError } from '../../../domain/errors';
 
 function resolveDateRange(preset: string, from?: string, to?: string): { from: Date; to: Date } {
   const now = new Date();
@@ -90,6 +92,22 @@ export class ListReviewsUseCase {
 
   async execute(restaurantId: string, limit: number, offset: number) {
     return this.analyticsRepo.listReviews(restaurantId, limit, offset);
+  }
+}
+
+export class CreateReviewUseCase {
+  constructor(
+    private analyticsRepo: IAnalyticsRepository,
+    private restaurantRepo: IRestaurantRepository
+  ) {}
+
+  async execute(
+    restaurantId: string,
+    data: { rating: number; comment?: string; customerName: string }
+  ) {
+    const restaurant = await this.restaurantRepo.findById(restaurantId);
+    if (!restaurant) throw new NotFoundError('Restaurante no encontrado');
+    return this.analyticsRepo.createReview(restaurantId, data);
   }
 }
 

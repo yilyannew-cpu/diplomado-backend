@@ -25,8 +25,6 @@ export class PrismaOrderRepository implements IOrderRepository {
         zone: data.zone ?? null,
         total: data.total,
         delivery_fee: data.deliveryFee,
-        payment_method: data.paymentMethod ?? 'Cash',
-        payment_status: data.paymentStatus ?? 'Pending',
         restaurant_id: data.restaurantId,
         items: {
           create: data.itemsWithPrice.map((item) => ({
@@ -55,7 +53,16 @@ export class PrismaOrderRepository implements IOrderRepository {
       where: { code },
       include: orderInclude,
     });
-    return record ? mapOrder(record as any) : null;
+    if (!record) return null;
+
+    const order = mapOrder(record as any);
+    return {
+      ...order,
+      items: record.items.map((item) => ({
+        ...order.items.find((i) => i.id === item.id)!,
+        productName: item.product.name,
+      })),
+    };
   }
 
   async listByRestaurant(filters: ListRestaurantOrdersFilters): Promise<OrderWithProductNames[]> {
@@ -100,7 +107,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       data: { 
         status: 'Cancelado',
         payment_observation: observation,
-        payment_status: 'Rechazado',
+        payment_status: 'Failed',
         status_entered_at: new Date(),
       },
       include: orderInclude,

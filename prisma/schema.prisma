@@ -82,8 +82,7 @@ model Restaurant {
   accent           String           @default("#4f46e5")
   initials         String
   status           RestaurantStatus @default(Pendiente)
-  
-  // Payment methods
+
   nequi_number     String?
   nequi_owner      String?
   breb_key         String?
@@ -147,8 +146,8 @@ model Order {
   zone               String?
   status             OrderStatus @default(Recibido)
   status_entered_at  DateTime    @default(now())
-  payment_method     String      @default("Cash")
-  payment_status     String      @default("Pending")
+  payment_method      PaymentMethod @default(Cash)
+  payment_status      PaymentStatus @default(Pending)
   payment_observation String?
   total              Int
   delivery_fee       Int         @default(5000)

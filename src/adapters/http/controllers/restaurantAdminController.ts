@@ -88,6 +88,25 @@ export async function listReviewsController(req: Request, res: Response, next: N
   }
 }
 
+export async function createReviewController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const review = await container.createReviewUseCase.execute(param(req, 'restaurantId'), {
+      rating: req.body.rating,
+      comment: req.body.comment,
+      customerName: req.body.customer_name,
+    });
+    res.status(201).json({
+      id: review.id,
+      rating: review.rating,
+      comment: review.comment,
+      customer_name: review.customerName,
+      created_at: review.createdAt.toISOString(),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getSalesReportController(req: Request, res: Response, next: NextFunction) {
   try {
     const report = await container.getSalesReportUseCase.execute(

@@ -14,6 +14,7 @@ import {
   updatePromotionSchema,
   promotionIdParamSchema,
   reviewsQuerySchema,
+  createReviewSchema,
   salesReportQuerySchema,
   dateRangeQuerySchema,
   dispatchQuerySchema,
@@ -25,6 +26,7 @@ import {
   updateRestaurantController,
   getDashboardController,
   listReviewsController,
+  createReviewController,
   getSalesReportController,
   getMonthlySalesController,
   getCourierPayoutsController,
@@ -40,6 +42,7 @@ import {
 } from '../controllers/categoriesController';
 import {
   listPromotionsController,
+  listActivePromotionsController,
   createPromotionController,
 } from '../controllers/promotionsController';
 import { Role } from '../../../domain/enums';
@@ -51,11 +54,30 @@ const adminRestaurant = [...adminOnly, validate(restaurantIdParamSchema, 'params
 
 router.get('/', listRestaurantsController);
 
+// Público — portal cliente (sin auth)
+router.get('/:restaurantId/categories', validate(restaurantIdParamSchema, 'params'), listCategoriesController);
+router.get(
+  '/:restaurantId/promotions/active',
+  validate(restaurantIdParamSchema, 'params'),
+  listActivePromotionsController
+);
+router.get(
+  '/:restaurantId/reviews',
+  validate(restaurantIdParamSchema, 'params'),
+  validate(reviewsQuerySchema, 'query'),
+  listReviewsController
+);
+router.post(
+  '/:restaurantId/reviews',
+  validate(restaurantIdParamSchema, 'params'),
+  validate(createReviewSchema),
+  createReviewController
+);
+
 router.get('/:restaurantId', ...adminRestaurant, getRestaurantController);
 router.patch('/:restaurantId', ...adminRestaurant, validate(updateRestaurantSchema), updateRestaurantController);
 
 router.get('/:restaurantId/dashboard', ...adminRestaurant, getDashboardController);
-router.get('/:restaurantId/reviews', ...adminRestaurant, validate(reviewsQuerySchema, 'query'), listReviewsController);
 
 router.get('/:restaurantId/reports/sales', ...adminRestaurant, validate(salesReportQuerySchema, 'query'), getSalesReportController);
 router.get('/:restaurantId/reports/sales/monthly', ...adminRestaurant, getMonthlySalesController);

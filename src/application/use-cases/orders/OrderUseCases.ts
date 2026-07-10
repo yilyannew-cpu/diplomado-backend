@@ -110,3 +110,13 @@ export class ListCourierOrdersUseCase {
     return this.orderRepo.listByCourier(courierId);
   }
 }
+
+export class GetOrderByCodeUseCase {
+  constructor(private orderRepo: IOrderRepository) {}
+
+  async execute(code: string) {
+    const order = await this.orderRepo.findByCode(code);
+    if (!order) throw new NotFoundError('Pedido no encontrado');
+    return order;
+  }
+}

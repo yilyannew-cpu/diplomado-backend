@@ -9,9 +9,12 @@ import {
   batchOrdersSchema,
   batchDispatchSchema,
   restaurantOrdersQuerySchema,
+  createOrderSchema,
+  orderTrackParamSchema,
 } from '../dto/schemas';
 import {
   createOrderController,
+  trackOrderController,
   listRestaurantOrdersController,
   updateOrderStatusController,
   rejectPaymentController,
@@ -31,7 +34,8 @@ const adminOrCourier = [authenticate, authorize(Role.ADMIN, Role.SUPERADMIN, Rol
 const superadminOnly = [authenticate, authorize(Role.SUPERADMIN)];
 
 router.get('/', ...superadminOnly, validate(listOrdersQuerySchema, 'query'), listOrdersController);
-router.post('/', createOrderController);
+router.get('/track/:code', validate(orderTrackParamSchema, 'params'), trackOrderController);
+router.post('/', validate(createOrderSchema), createOrderController);
 
 router.get(
   '/restaurant/:restaurantId',

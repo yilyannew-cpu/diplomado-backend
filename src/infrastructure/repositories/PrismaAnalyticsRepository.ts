@@ -286,6 +286,28 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
     };
   }
 
+  async createReview(
+    restaurantId: string,
+    data: { rating: number; comment?: string; customerName: string }
+  ) {
+    const record = await prisma.review.create({
+      data: {
+        restaurant_id: restaurantId,
+        rating: data.rating,
+        comment: data.comment ?? null,
+        customer_name: data.customerName,
+      },
+    });
+
+    return {
+      id: record.id,
+      rating: record.rating,
+      comment: record.comment,
+      customerName: record.customer_name,
+      createdAt: record.created_at,
+    };
+  }
+
   async getActiveDeliveries(restaurantId: string) {
     const orders = await prisma.order.findMany({
       where: {

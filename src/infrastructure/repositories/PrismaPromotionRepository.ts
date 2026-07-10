@@ -40,6 +40,21 @@ export class PrismaPromotionRepository implements IPromotionRepository {
     return records.map(mapPromotion);
   }
 
+  async listActiveByRestaurant(restaurantId: string) {
+    const now = new Date();
+    const records = await prisma.promotion.findMany({
+      where: {
+        restaurant_id: restaurantId,
+        active: true,
+        start_date: { lte: now },
+        end_date: { gte: now },
+      },
+      include: includeProducts,
+      orderBy: { created_at: 'desc' },
+    });
+    return records.map(mapPromotion);
+  }
+
   async findById(id: string) {
     const record = await prisma.promotion.findUnique({
       where: { id },

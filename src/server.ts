@@ -37,6 +37,13 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('join_order', (orderCode: string) => {
+    if (orderCode) {
+      socket.join(`order:${orderCode}`);
+      console.log(`[Socket] ${socket.id} unido a order:${orderCode}`);
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log(`[Socket] Cliente desconectado: ${socket.id}`);
   });

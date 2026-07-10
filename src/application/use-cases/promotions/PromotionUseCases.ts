@@ -14,6 +14,14 @@ export class ListPromotionsUseCase {
   }
 }
 
+export class ListActivePromotionsUseCase {
+  constructor(private promotionRepo: IPromotionRepository) {}
+
+  async execute(restaurantId: string) {
+    return this.promotionRepo.listActiveByRestaurant(restaurantId);
+  }
+}
+
 export class GetPromotionUseCase {
   constructor(private promotionRepo: IPromotionRepository) {}
 
