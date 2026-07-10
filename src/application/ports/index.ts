@@ -74,6 +74,7 @@ export interface UpdateRestaurantData {
   deliveryMinutes?: number;
   monthlyGoal?: number;
   accent?: string;
+  logo?: string | null;
 }
 
 export interface IRestaurantRepository {

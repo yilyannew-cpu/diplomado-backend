@@ -160,6 +160,7 @@ export const updateRestaurantSchema = z.object({
   delivery_minutes: z.number().int().min(10).max(120).optional(),
   monthly_goal: z.number().int().min(0).optional(),
   accent: z.string().max(20).optional(),
+  logo: imageUrlSchema.nullable().optional(),
 });
 
 export const createCategorySchema = z.object({

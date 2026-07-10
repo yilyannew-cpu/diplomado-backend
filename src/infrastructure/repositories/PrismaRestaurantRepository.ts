@@ -64,13 +64,14 @@ export class PrismaRestaurantRepository implements IRestaurantRepository {
     const record = await prisma.restaurant.update({
       where: { id },
       data: {
-        name: data.name,
-        tagline: data.tagline,
-        city: data.city,
-        address: data.address,
-        delivery_minutes: data.deliveryMinutes,
-        monthly_goal: data.monthlyGoal,
-        accent: data.accent,
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.tagline !== undefined && { tagline: data.tagline }),
+        ...(data.city !== undefined && { city: data.city }),
+        ...(data.address !== undefined && { address: data.address }),
+        ...(data.deliveryMinutes !== undefined && { delivery_minutes: data.deliveryMinutes }),
+        ...(data.monthlyGoal !== undefined && { monthly_goal: data.monthlyGoal }),
+        ...(data.accent !== undefined && { accent: data.accent }),
+        ...(data.logo !== undefined && { logo: data.logo }),
       },
     });
     return mapRestaurant(record);
