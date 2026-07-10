@@ -25,8 +25,14 @@ ALTER TABLE "categories" DROP CONSTRAINT IF EXISTS "categories_name_key";
 DROP INDEX IF EXISTS "categories_name_key";
 
 DO $$ BEGIN
-  ALTER TABLE "categories" ADD CONSTRAINT "categories_restaurant_id_fkey"
-    FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  IF NOT EXISTS (
+    SELECT 1 FROM "categories" c
+    LEFT JOIN "restaurants" r ON r.id = c."restaurant_id"
+    WHERE c."restaurant_id" IS NOT NULL AND r.id IS NULL
+  ) THEN
+    ALTER TABLE "categories" ADD CONSTRAINT "categories_restaurant_id_fkey"
+      FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
