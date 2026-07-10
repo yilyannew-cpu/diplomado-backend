@@ -54,9 +54,11 @@ import {
   BatchDispatchOrdersUseCase,
   ListAvailableDeliveriesUseCase,
   ListCourierOrdersUseCase,
+  GetOrderByCodeUseCase,
 } from './application/use-cases/orders/OrderUseCases';
 import {
   ListPromotionsUseCase,
+  ListActivePromotionsUseCase,
   GetPromotionUseCase,
   CreatePromotionUseCase,
   UpdatePromotionUseCase,
@@ -69,6 +71,7 @@ import {
   GetCourierPayoutsUseCase,
   ExportSalesCsvUseCase,
   ListReviewsUseCase,
+  CreateReviewUseCase,
   GetActiveDeliveriesUseCase,
   ListDispatchesUseCase,
   GetDispatchSummaryUseCase,
@@ -151,8 +154,10 @@ export const container = {
   batchDispatchOrdersUseCase: new BatchDispatchOrdersUseCase(orderRepository),
   listAvailableDeliveriesUseCase: new ListAvailableDeliveriesUseCase(orderRepository),
   listCourierOrdersUseCase: new ListCourierOrdersUseCase(orderRepository),
+  getOrderByCodeUseCase: new GetOrderByCodeUseCase(orderRepository),
 
   listPromotionsUseCase: new ListPromotionsUseCase(promotionRepository),
+  listActivePromotionsUseCase: new ListActivePromotionsUseCase(promotionRepository),
   getPromotionUseCase: new GetPromotionUseCase(promotionRepository),
   createPromotionUseCase: new CreatePromotionUseCase(promotionRepository, productRepository),
   updatePromotionUseCase: new UpdatePromotionUseCase(promotionRepository, productRepository),
@@ -164,6 +169,7 @@ export const container = {
   getCourierPayoutsUseCase: new GetCourierPayoutsUseCase(analyticsRepository),
   exportSalesCsvUseCase: new ExportSalesCsvUseCase(analyticsRepository),
   listReviewsUseCase: new ListReviewsUseCase(analyticsRepository),
+  createReviewUseCase: new CreateReviewUseCase(analyticsRepository, restaurantRepository),
   getActiveDeliveriesUseCase: new GetActiveDeliveriesUseCase(analyticsRepository),
   listDispatchesUseCase: new ListDispatchesUseCase(analyticsRepository),
   getDispatchSummaryUseCase: new GetDispatchSummaryUseCase(analyticsRepository),

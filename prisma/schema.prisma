@@ -82,6 +82,13 @@ model Restaurant {
   accent           String           @default("#4f46e5")
   initials         String
   status           RestaurantStatus @default(Pendiente)
+
+  nequi_number     String?
+  nequi_owner      String?
+  breb_key         String?
+  breb_owner       String?
+  breb_qr_url      String?
+
   users            User[]
   products         Product[]
   orders           Order[]
@@ -139,8 +146,9 @@ model Order {
   zone               String?
   status             OrderStatus @default(Recibido)
   status_entered_at  DateTime    @default(now())
-  payment_method     PaymentMethod @default(Cash)
-  payment_status     PaymentStatus @default(Pending)
+  payment_method      PaymentMethod @default(Cash)
+  payment_status      PaymentStatus @default(Pending)
+  payment_observation String?
   total              Int
   delivery_fee       Int         @default(5000)
   restaurant         Restaurant  @relation(fields: [restaurant_id], references: [id])
@@ -153,6 +161,16 @@ model Order {
   updated_at         DateTime    @updatedAt
 
   @@map("orders")
+}
+
+model UserReport {
+  id            String   @id @default(uuid())
+  reported_user String
+  reported_by   String
+  reason        String
+  created_at    DateTime @default(now())
+
+  @@map("user_reports")
 }
 
 model OrderItem {

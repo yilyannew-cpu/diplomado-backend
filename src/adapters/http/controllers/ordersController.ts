@@ -3,33 +3,48 @@ import { Server as SocketIOServer } from 'socket.io';
 import { container } from '../../../container';
 import { OrderStatus } from '../../../domain/enums';
 import { param } from '../utils/routeParams';
-import { serializeOrders, parseStatusFilter } from '../serializers/orderSerializer';
+import { serializeOrders, serializeOrder, parseStatusFilter } from '../serializers/orderSerializer';
+import { Order } from '../../../domain/entities/Order';
 
-function emitToRestaurant(io: SocketIOServer | undefined, restaurantId: string, event: string, data: unknown) {
+function emitOrderEvent(
+  io: SocketIOServer | undefined,
+  order: Pick<Order, 'restaurantId' | 'code'>,
+  event: string,
+  data: unknown
+) {
   if (!io) return;
-  io.to(`restaurant:${restaurantId}`).emit(event, data);
-  io.emit(event, data);
+  io.to(`restaurant:${order.restaurantId}`).emit(event, data);
+  io.to(`order:${order.code}`).emit(event, data);
 }
 
 export async function createOrderController(req: Request, res: Response, next: NextFunction) {
   try {
     const order = await container.createOrderUseCase.execute({
-      customerName: req.body.customer_name ?? req.body.customerName,
+      customerName: req.body.customer_name,
       address: req.body.address,
       phone: req.body.phone,
       notes: req.body.notes,
       zone: req.body.zone,
-      restaurantId: req.body.restaurant_id ?? req.body.restaurantId,
-      items: (req.body.items ?? []).map((item: Record<string, unknown>) => ({
-        productId: item.product_id ?? item.productId,
+      restaurantId: req.body.restaurant_id,
+      items: req.body.items.map((item: Record<string, unknown>) => ({
+        productId: item.product_id,
         quantity: item.quantity,
         customizations: item.customizations,
       })),
     });
     const io = req.app.get('io') as SocketIOServer;
     const serialized = serializeOrders([order as any])[0];
-    emitToRestaurant(io, order.restaurantId, 'new_order', serialized);
+    emitOrderEvent(io, order, 'new_order', serialized);
     res.status(201).json(serialized);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function trackOrderController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const order = await container.getOrderByCodeUseCase.execute(param(req, 'code'));
+    res.json(serializeOrder(order as any));
   } catch (error) {
     next(error);
   }
@@ -54,7 +69,7 @@ export async function updateOrderStatusController(req: Request, res: Response, n
     );
     const io = req.app.get('io') as SocketIOServer;
     const serialized = serializeOrders([order as any])[0];
-    emitToRestaurant(io, order.restaurantId, 'order_status_changed', serialized);
+    emitOrderEvent(io, order, 'order_status_changed', serialized);
     res.json(serialized);
   } catch (error) {
     next(error);
@@ -69,7 +84,7 @@ export async function assignCourierController(req: Request, res: Response, next:
     );
     const io = req.app.get('io') as SocketIOServer;
     const serialized = serializeOrders([order as any])[0];
-    emitToRestaurant(io, order.restaurantId, 'order_status_changed', serialized);
+    emitOrderEvent(io, order, 'order_status_changed', serialized);
     res.json(serialized);
   } catch (error) {
     next(error);
@@ -85,7 +100,7 @@ export async function batchAssignCourierController(req: Request, res: Response, 
     const io = req.app.get('io') as SocketIOServer;
     const serialized = serializeOrders(orders as any);
     if (orders.length > 0) {
-      emitToRestaurant(io, orders[0].restaurantId, 'order_status_changed', serialized);
+      emitOrderEvent(io, orders[0], 'order_status_changed', serialized);
     }
     res.json(serialized);
   } catch (error) {
@@ -103,7 +118,7 @@ export async function batchDispatchOrdersController(req: Request, res: Response,
     const io = req.app.get('io') as SocketIOServer;
     const serialized = serializeOrders(orders as any);
     if (orders.length > 0) {
-      emitToRestaurant(io, orders[0].restaurantId, 'order_status_changed', serialized);
+      emitOrderEvent(io, orders[0], 'order_status_changed', serialized);
     }
     res.json(serialized);
   } catch (error) {

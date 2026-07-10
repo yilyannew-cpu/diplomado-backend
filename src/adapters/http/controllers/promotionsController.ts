@@ -12,6 +12,15 @@ export async function listPromotionsController(req: Request, res: Response, next
   }
 }
 
+export async function listActivePromotionsController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const promotions = await container.listActivePromotionsUseCase.execute(param(req, 'restaurantId'));
+    res.json(promotions.map(serializePromotion));
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function createPromotionController(req: Request, res: Response, next: NextFunction) {
   try {
     const promotion = await container.createPromotionUseCase.execute({

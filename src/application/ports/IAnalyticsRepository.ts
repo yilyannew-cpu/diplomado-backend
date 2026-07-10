@@ -98,6 +98,10 @@ export interface IAnalyticsRepository {
   getCourierPayouts(restaurantId: string, from: Date, to: Date): Promise<CourierPayoutRow[]>;
   exportSalesCsv(restaurantId: string, from: Date, to: Date): Promise<string>;
   listReviews(restaurantId: string, limit: number, offset: number): Promise<{ data: ReviewItem[]; total: number }>;
+  createReview(
+    restaurantId: string,
+    data: { rating: number; comment?: string; customerName: string }
+  ): Promise<ReviewItem>;
   getActiveDeliveries(restaurantId: string): Promise<ActiveDeliveryGroup[]>;
   listDispatches(restaurantId: string, from: Date, to: Date): Promise<DispatchItem[]>;
   getDispatchSummary(restaurantId: string, period: 'today' | 'month' | 'year'): Promise<DispatchSummary>;

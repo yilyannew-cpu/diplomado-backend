@@ -285,3 +285,37 @@ export const dispatchQuerySchema = z.object({
 export const couriersAvailableQuerySchema = z.object({
   batch_size: z.coerce.number().int().min(1).max(10).optional(),
 });
+
+const orderCustomizationSchema = z
+  .object({
+    removed_ingredients: z.array(z.string()).optional(),
+    added_modifiers: z.record(z.array(z.string())).optional(),
+    extra_price: z.number().int().min(0).optional(),
+  })
+  .optional();
+
+const orderItemSchema = z.object({
+  product_id: z.string().min(1, 'product_id es requerido'),
+  quantity: z.number().int().min(1).max(50),
+  customizations: orderCustomizationSchema,
+});
+
+export const createOrderSchema = z.object({
+  customer_name: z.string().min(2).max(100),
+  address: z.string().min(5).max(255),
+  phone: phoneSchema,
+  notes: z.string().max(500).optional(),
+  zone: z.string().max(100).optional(),
+  restaurant_id: z.string().min(1),
+  items: z.array(orderItemSchema).min(1, 'Debe incluir al menos un producto'),
+});
+
+export const orderTrackParamSchema = z.object({
+  code: z.string().regex(/^PED-\d+$/, 'Código de pedido inválido (ej. PED-101)'),
+});
+
+export const createReviewSchema = z.object({
+  rating: z.number().min(1).max(5),
+  comment: z.string().max(500).optional(),
+  customer_name: z.string().min(2).max(100),
+});
