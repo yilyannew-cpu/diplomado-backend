@@ -15,6 +15,7 @@ export enum UserStatus {
 export enum RestaurantStatus {
   ACTIVO = 'Activo',
   PENDIENTE = 'Pendiente',
+  SUSPENDIDO = 'Suspendido',
   RECHAZADO = 'Rechazado',
 }
 

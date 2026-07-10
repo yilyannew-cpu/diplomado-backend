@@ -129,7 +129,7 @@ export const container = {
   listPendingUseCase: new ListPendingRegistrationsUseCase(userRepository),
   listUsersUseCase: new ListUsersUseCase(userRepository),
   getUserByIdUseCase: new GetUserByIdUseCase(userRepository),
-  updateUserUseCase: new UpdateUserUseCase(userRepository),
+  updateUserUseCase: new UpdateUserUseCase(userRepository, restaurantRepository),
   listRestaurantsUseCase: new ListRestaurantsUseCase(restaurantRepository),
   getRestaurantUseCase: new GetRestaurantUseCase(restaurantRepository),
   updateRestaurantUseCase: new UpdateRestaurantUseCase(restaurantRepository),

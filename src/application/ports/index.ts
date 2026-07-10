@@ -42,6 +42,10 @@ export interface PendingUserWithRestaurant extends PublicUser {
   } | null;
 }
 
+export interface ListedPublicUser extends PublicUser {
+  restaurantName?: string | null;
+}
+
 export interface IUserRepository {
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
@@ -49,7 +53,7 @@ export interface IUserRepository {
   create(data: CreateUserData): Promise<User>;
   update(id: string, data: UpdateUserData): Promise<User>;
   listPending(): Promise<PendingUserWithRestaurant[]>;
-  list(filters: ListUsersFilters): Promise<PublicUser[]>;
+  list(filters: ListUsersFilters): Promise<ListedPublicUser[]>;
 }
 
 export interface CreateRestaurantData {
@@ -75,6 +79,8 @@ export interface UpdateRestaurantData {
 export interface IRestaurantRepository {
   findById(id: string): Promise<Restaurant | null>;
   listAll(): Promise<Restaurant[]>;
+  /** Solo activos y sin admin suspendido (catálogo cliente). */
+  listActiveForClient(): Promise<Restaurant[]>;
   create(data: CreateRestaurantData): Promise<Restaurant>;
   update(id: string, data: UpdateRestaurantData): Promise<Restaurant>;
   updateStatus(id: string, status: import('../../domain/enums').RestaurantStatus): Promise<Restaurant>;

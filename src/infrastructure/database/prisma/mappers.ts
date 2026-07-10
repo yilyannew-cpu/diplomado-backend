@@ -37,12 +37,14 @@ const statusToPrisma: Record<UserStatus, PrismaUserStatus> = {
 const restaurantStatusMap: Record<PrismaRestaurantStatus, RestaurantStatus> = {
   Activo: RestaurantStatus.ACTIVO,
   Pendiente: RestaurantStatus.PENDIENTE,
+  Suspendido: RestaurantStatus.SUSPENDIDO,
   Rechazado: RestaurantStatus.RECHAZADO,
 };
 
 const restaurantStatusToPrisma: Record<RestaurantStatus, PrismaRestaurantStatus> = {
   [RestaurantStatus.ACTIVO]: 'Activo',
   [RestaurantStatus.PENDIENTE]: 'Pendiente',
+  [RestaurantStatus.SUSPENDIDO]: 'Suspendido',
   [RestaurantStatus.RECHAZADO]: 'Rechazado',
 };
 
