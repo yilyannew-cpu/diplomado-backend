@@ -1,6 +1,6 @@
-import { IUserRepository, ListUsersFilters } from '../../ports';
+import { IUserRepository, IRestaurantRepository, ListUsersFilters } from '../../ports';
 import { NotFoundError, ConflictError } from '../../../domain/errors';
-import { Role } from '../../../domain/enums';
+import { Role, UserStatus, RestaurantStatus } from '../../../domain/enums';
 import { toPublicUser } from '../../../domain/entities/User';
 
 export class ListUsersUseCase {
@@ -30,12 +30,15 @@ export interface UpdateUserInput {
   phone?: string | null;
   vehicle?: string | null;
   role?: Role;
-  status?: import('../../../domain/enums').UserStatus;
+  status?: UserStatus;
   restaurantId?: string | null;
 }
 
 export class UpdateUserUseCase {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly restaurantRepository: IRestaurantRepository,
+  ) {}
 
   async execute(id: string, input: UpdateUserInput, requesterRole: Role) {
     const user = await this.userRepository.findById(id);
@@ -65,6 +68,20 @@ export class UpdateUserUseCase {
       status: input.status,
       restaurantId: input.restaurantId,
     });
+
+    // Suspender/activar admin también oculta o muestra el restaurante en el catálogo cliente.
+    const restaurantId = updated.restaurantId ?? user.restaurantId;
+    if (
+      (updated.role === Role.ADMIN || user.role === Role.ADMIN) &&
+      restaurantId &&
+      input.status !== undefined
+    ) {
+      if (input.status === UserStatus.SUSPENDIDO) {
+        await this.restaurantRepository.updateStatus(restaurantId, RestaurantStatus.SUSPENDIDO);
+      } else if (input.status === UserStatus.ACTIVO) {
+        await this.restaurantRepository.updateStatus(restaurantId, RestaurantStatus.ACTIVO);
+      }
+    }
 
     return toPublicUser(updated);
   }

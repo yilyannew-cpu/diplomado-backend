@@ -1,4 +1,5 @@
 import { PublicUser } from '../../../domain/entities/User';
+import { ListedPublicUser } from '../../../application/ports';
 
 function toIsoDate(value: Date | null | undefined): string | null {
   if (!value || Number.isNaN(value.getTime())) {
@@ -7,7 +8,8 @@ function toIsoDate(value: Date | null | undefined): string | null {
   return value.toISOString();
 }
 
-export function serializeUser(user: PublicUser) {
+export function serializeUser(user: PublicUser | ListedPublicUser) {
+  const listed = user as ListedPublicUser;
   return {
     id: user.id,
     name: user.name,
@@ -18,6 +20,7 @@ export function serializeUser(user: PublicUser) {
     document_id: user.documentId,
     avatar: user.avatar,
     restaurant_id: user.restaurantId,
+    restaurant_name: listed.restaurantName ?? null,
     status: user.status,
     created_at: toIsoDate(user.createdAt),
     updated_at: toIsoDate(user.updatedAt),
