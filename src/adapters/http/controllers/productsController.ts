@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { container } from '../../../container';
 import { param } from '../utils/routeParams';
 import { serializeProduct, serializeProducts } from '../serializers/productSerializer';
-import { buildPublicUrl } from '../../../infrastructure/services/UploadService';
+import { filePathToDataUrl } from '../../../infrastructure/services/UploadService';
 
 export async function listProductsController(req: Request, res: Response, next: NextFunction) {
   try {
@@ -86,7 +86,7 @@ export async function uploadProductImageController(req: Request, res: Response, 
     if (!req.file) {
       return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Archivo requerido' });
     }
-    const url = buildPublicUrl(req, req.file.filename);
+    const url = filePathToDataUrl(req.file.path, req.file.mimetype);
     await container.updateProductImageUseCase.execute(param(req, 'id'), url);
     const product = await container.getProductUseCase.execute(param(req, 'id'));
     res.json(serializeProduct(product));
