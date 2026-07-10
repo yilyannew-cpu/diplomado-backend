@@ -22,6 +22,21 @@ export class PrismaRestaurantRepository implements IRestaurantRepository {
     return records.map(mapRestaurant);
   }
 
+  async listActiveForClient() {
+    const records = await prisma.restaurant.findMany({
+      where: {
+        status: 'Activo',
+        NOT: {
+          users: {
+            some: { role: 'admin', status: 'Suspendido' },
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+    return records.map(mapRestaurant);
+  }
+
   async create(data: CreateRestaurantData) {
     const record = await prisma.restaurant.create({
       data: {

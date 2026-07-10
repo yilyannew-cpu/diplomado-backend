@@ -103,9 +103,13 @@ export class PrismaUserRepository implements IUserRepository {
 
     const records = await prisma.user.findMany({
       where,
+      include: { restaurant: { select: { name: true } } },
       orderBy: { created_at: 'desc' },
     });
 
-    return records.map((r) => toPublicUser(mapUser(r)));
+    return records.map((r) => ({
+      ...toPublicUser(mapUser(r)),
+      restaurantName: r.restaurant?.name ?? null,
+    }));
   }
 }
