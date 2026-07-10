@@ -37,7 +37,14 @@ export class PrismaOrderRepository implements IOrderRepository {
       },
       include: orderInclude,
     });
-    return mapOrder(record as any);
+    const order = mapOrder(record as any);
+    return {
+      ...order,
+      items: record.items.map((item) => ({
+        ...order.items.find((i) => i.id === item.id)!,
+        productName: item.product.name,
+      })),
+    };
   }
 
   async findById(id: string) {
