@@ -24,6 +24,7 @@ import { listRestaurantsController } from '../controllers/restaurantsController'
 import {
   getRestaurantController,
   updateRestaurantController,
+  uploadRestaurantLogoController,
   getDashboardController,
   listReviewsController,
   createReviewController,
@@ -76,6 +77,12 @@ router.post(
 
 router.get('/:restaurantId', ...adminRestaurant, getRestaurantController);
 router.patch('/:restaurantId', ...adminRestaurant, validate(updateRestaurantSchema), updateRestaurantController);
+router.post(
+  '/:restaurantId/logo',
+  ...adminRestaurant,
+  uploadImage.single('file'),
+  uploadRestaurantLogoController
+);
 
 router.get('/:restaurantId/dashboard', ...adminRestaurant, getDashboardController);
 

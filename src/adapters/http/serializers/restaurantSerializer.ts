@@ -11,6 +11,7 @@ export function serializeRestaurantProfile(restaurant: Restaurant & { monthlyGoa
     monthly_goal: restaurant.monthlyGoal ?? 18000000,
     accent: restaurant.accent,
     initials: restaurant.initials,
+    logo: restaurant.logo ?? null,
     rating: restaurant.rating,
     status: restaurant.status,
   };
