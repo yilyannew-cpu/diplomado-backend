@@ -1,6 +1,6 @@
 import { Restaurant } from '../../../domain/entities/Restaurant';
 
-export function serializeRestaurantProfile(restaurant: Restaurant & { monthlyGoal?: number }) {
+export function serializeRestaurantProfile(restaurant: Restaurant) {
   return {
     id: restaurant.id,
     name: restaurant.name,
@@ -8,7 +8,8 @@ export function serializeRestaurantProfile(restaurant: Restaurant & { monthlyGoa
     city: restaurant.city,
     address: restaurant.address,
     delivery_minutes: restaurant.deliveryMinutes,
-    monthly_goal: restaurant.monthlyGoal ?? 18000000,
+    monthly_goal: restaurant.monthlyGoal,
+    daily_goal: restaurant.dailyGoal,
     accent: restaurant.accent,
     initials: restaurant.initials,
     logo: restaurant.logo ?? null,

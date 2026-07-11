@@ -27,6 +27,11 @@ function startOfYear(d = new Date()) {
   return new Date(d.getFullYear(), 0, 1);
 }
 
+/** Ventas del restaurante = total cobrado − domicilio (el domicilio es del repartidor). */
+function restaurantProductSales(total: number, deliveryFee: number): number {
+  return Math.max(0, total - deliveryFee);
+}
+
 export class PrismaAnalyticsRepository implements IAnalyticsRepository {
   async getDashboard(restaurantId: string) {
     const todayStart = startOfDay();
@@ -46,7 +51,7 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
             created_at: { gte: todayStart, lte: todayEnd },
             status: { not: 'Cancelado' },
           },
-          _sum: { total: true },
+          _sum: { total: true, delivery_fee: true },
           _count: true,
         }),
         prisma.order.aggregate({
@@ -55,7 +60,7 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
             created_at: { gte: monthStart, lte: monthEnd },
             status: { not: 'Cancelado' },
           },
-          _sum: { total: true },
+          _sum: { total: true, delivery_fee: true },
         }),
         prisma.orderItem.findMany({
           where: {
@@ -130,15 +135,32 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
       .sort((a, b) => b.quantitySold - a.quantitySold)
       .slice(0, 5);
 
-    const monthlySales = monthOrders._sum.total ?? 0;
-    const monthlyGoal = restaurant.monthly_goal;
+    const salesToday = restaurantProductSales(
+      todayOrders._sum.total ?? 0,
+      todayOrders._sum.delivery_fee ?? 0,
+    );
+    const monthlySales = restaurantProductSales(
+      monthOrders._sum.total ?? 0,
+      monthOrders._sum.delivery_fee ?? 0,
+    );
+    const monthlyGoal = restaurant.monthly_goal ?? null;
+    const dailyGoal =
+      (restaurant as { daily_goal?: number | null }).daily_goal ?? null;
 
     return {
-      salesToday: todayOrders._sum.total ?? 0,
+      salesToday,
       ordersToday: todayOrders._count,
       monthlySales,
       monthlyGoal,
-      goalProgressPercent: monthlyGoal > 0 ? Math.round((monthlySales / monthlyGoal) * 1000) / 10 : 0,
+      dailyGoal,
+      goalProgressPercent:
+        monthlyGoal != null && monthlyGoal > 0
+          ? Math.round((monthlySales / monthlyGoal) * 1000) / 10
+          : null,
+      dailyGoalProgressPercent:
+        dailyGoal != null && dailyGoal > 0
+          ? Math.round((salesToday / dailyGoal) * 1000) / 10
+          : null,
       salesByCategory: Array.from(categoryTotals.entries()).map(([categoryId, data]) => ({
         categoryId,
         categoryName: data.name,
@@ -162,10 +184,14 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
     });
 
     const delivered = orders.filter((o) => o.status === 'Entregado');
-    const grossSales = orders.reduce((sum, o) => sum + o.total, 0);
+    const grossSales = orders.reduce(
+      (sum, o) => sum + restaurantProductSales(o.total, o.delivery_fee),
+      0,
+    );
     const courierPayout = delivered.reduce((sum, o) => sum + o.delivery_fee, 0);
     const appCommissions = Math.round(grossSales * APP_COMMISSION_RATE);
-    const netProfit = grossSales - courierPayout;
+    // grossSales ya excluye domicilio; no restar courierPayout otra vez
+    const netProfit = grossSales;
     const realNetProfit = netProfit - appCommissions;
 
     return {
@@ -197,13 +223,13 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
             created_at: { gte: from, lte: to },
             status: { not: 'Cancelado' },
           },
-          _sum: { total: true },
+          _sum: { total: true, delivery_fee: true },
           _count: true,
         });
         return {
           month: month + 1,
           label: labels[month],
-          grossSales: agg._sum.total ?? 0,
+          grossSales: restaurantProductSales(agg._sum.total ?? 0, agg._sum.delivery_fee ?? 0),
           orders: agg._count,
         };
       })

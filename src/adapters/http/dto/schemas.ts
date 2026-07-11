@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Role, UserStatus, OrderStatus } from '../../../domain/enums';
+import { isCucutaComuna } from '../../../domain/constants/cucutaComunas';
 
 const passwordSchema = z
   .string()
@@ -38,6 +39,10 @@ export const registerClientSchema = z
     password: passwordSchema,
     password_confirmation: z.string(),
     phone: phoneSchema,
+    comuna: z
+      .string()
+      .min(1, 'Selecciona una comuna')
+      .refine(isCucutaComuna, { message: 'Selecciona una comuna válida' }),
   })
   .refine((data) => data.password === data.password_confirmation, {
     message: 'Las contraseñas no coinciden',
@@ -110,10 +115,16 @@ export const updateProfileSchema = z
   .object({
     email: z.string().email('Email inválido').optional(),
     phone: phoneSchema.optional(),
+    comuna: z
+      .string()
+      .min(1, 'Selecciona una comuna')
+      .refine(isCucutaComuna, { message: 'Selecciona una comuna válida' })
+      .optional(),
   })
-  .refine((data) => data.email !== undefined || data.phone !== undefined, {
-    message: 'Debe enviar al menos email o teléfono',
-  });
+  .refine(
+    (data) => data.email !== undefined || data.phone !== undefined || data.comuna !== undefined,
+    { message: 'Debe enviar al menos email, teléfono o comuna' },
+  );
 
 export const changePasswordSchema = z
   .object({
@@ -158,7 +169,9 @@ export const updateRestaurantSchema = z.object({
   city: z.string().min(1).max(100).optional(),
   address: z.string().min(1).max(255).optional(),
   delivery_minutes: z.number().int().min(10).max(120).optional(),
-  monthly_goal: z.number().int().min(0).optional(),
+  /** null = sin meta (opcional). */
+  monthly_goal: z.union([z.number().int().min(0), z.null()]).optional(),
+  daily_goal: z.union([z.number().int().min(0), z.null()]).optional(),
   accent: z.string().max(20).optional(),
   logo: imageUrlSchema.nullable().optional(),
 });

@@ -6,6 +6,7 @@ import { toPublicUser } from '../../../domain/entities/User';
 export interface UpdateProfileInput {
   email?: string;
   phone?: string;
+  comuna?: string;
 }
 
 export class UpdateProfileUseCase {
@@ -36,6 +37,7 @@ export class UpdateProfileUseCase {
     const updated = await this.userRepository.update(userId, {
       ...(input.email !== undefined && { email: input.email.toLowerCase().trim() }),
       ...(input.phone !== undefined && { phone: input.phone.trim() }),
+      ...(input.comuna !== undefined && { comuna: input.comuna.trim() }),
     });
 
     return toPublicUser(updated);
