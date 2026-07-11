@@ -16,8 +16,10 @@ export interface RestaurantDashboard {
   salesToday: number;
   ordersToday: number;
   monthlySales: number;
-  monthlyGoal: number;
-  goalProgressPercent: number;
+  monthlyGoal: number | null;
+  dailyGoal: number | null;
+  goalProgressPercent: number | null;
+  dailyGoalProgressPercent: number | null;
   salesByCategory: SalesByCategory[];
   topProducts: TopProduct[];
   activePromotionsCount: number;

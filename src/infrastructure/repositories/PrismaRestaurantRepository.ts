@@ -70,6 +70,7 @@ export class PrismaRestaurantRepository implements IRestaurantRepository {
         ...(data.address !== undefined && { address: data.address }),
         ...(data.deliveryMinutes !== undefined && { delivery_minutes: data.deliveryMinutes }),
         ...(data.monthlyGoal !== undefined && { monthly_goal: data.monthlyGoal }),
+        ...(data.dailyGoal !== undefined && { daily_goal: data.dailyGoal }),
         ...(data.accent !== undefined && { accent: data.accent }),
         ...(data.logo !== undefined && { logo: data.logo }),
       },

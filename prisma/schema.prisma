@@ -60,6 +60,8 @@ model User {
   vehicle       String?
   document_id   String?
   avatar        String?
+  /** Comuna de Cúcuta (clientes). */
+  comuna        String?
   status        UserStatus @default(Pendiente)
   restaurant_id String?
   restaurant    Restaurant? @relation(fields: [restaurant_id], references: [id])
@@ -79,7 +81,8 @@ model Restaurant {
   address          String
   rating           Float            @default(0)
   delivery_minutes Int              @default(30)
-  monthly_goal     Int              @default(18000000)
+  monthly_goal     Int?
+  daily_goal       Int?
   accent           String           @default("#4f46e5")
   initials         String
   logo             String?

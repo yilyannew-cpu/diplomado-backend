@@ -10,6 +10,7 @@ export interface User {
   vehicle: string | null;
   documentId: string | null;
   avatar: string | null;
+  comuna: string | null;
   status: UserStatus;
   restaurantId: string | null;
   createdAt: Date;
