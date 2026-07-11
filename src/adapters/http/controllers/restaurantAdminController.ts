@@ -23,6 +23,7 @@ export async function updateRestaurantController(req: Request, res: Response, ne
         address: req.body.address,
         deliveryMinutes: req.body.delivery_minutes,
         monthlyGoal: req.body.monthly_goal,
+        dailyGoal: req.body.daily_goal,
         accent: req.body.accent,
         logo: req.body.logo,
       }
@@ -57,7 +58,9 @@ export async function getDashboardController(req: Request, res: Response, next: 
       orders_today: data.ordersToday,
       monthly_sales: data.monthlySales,
       monthly_goal: data.monthlyGoal,
+      daily_goal: data.dailyGoal,
       goal_progress_percent: data.goalProgressPercent,
+      daily_goal_progress_percent: data.dailyGoalProgressPercent,
       sales_by_category: data.salesByCategory.map((c) => ({
         category_id: c.categoryId,
         category_name: c.categoryName,

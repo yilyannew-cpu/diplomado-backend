@@ -37,6 +37,7 @@ export async function updateProfileController(req: Request, res: Response, next:
     const user = await container.updateProfileUseCase.execute(req.user!.id, req.user!.role, {
       email: req.body.email,
       phone: req.body.phone,
+      comuna: req.body.comuna,
     });
     res.json({ user: serializeUserPublic(user) });
   } catch (error) {
@@ -63,6 +64,7 @@ export async function registerClientController(req: Request, res: Response, next
       email: req.body.email,
       password: req.body.password,
       phone: req.body.phone,
+      comuna: req.body.comuna,
     });
     res.status(201).json({
       token: result.token,

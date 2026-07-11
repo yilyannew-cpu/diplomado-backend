@@ -8,6 +8,7 @@ export interface RegisterClientInput {
   email: string;
   password: string;
   phone: string;
+  comuna: string;
 }
 
 export class RegisterClientUseCase {
@@ -34,6 +35,7 @@ export class RegisterClientUseCase {
       passwordHash,
       role: Role.CLIENTE,
       phone: input.phone,
+      comuna: input.comuna.trim(),
       status: UserStatus.ACTIVO,
     });
 

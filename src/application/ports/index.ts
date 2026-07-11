@@ -10,6 +10,7 @@ export interface CreateUserData {
   phone?: string | null;
   vehicle?: string | null;
   documentId?: string | null;
+  comuna?: string | null;
   status?: UserStatus;
   restaurantId?: string | null;
 }
@@ -20,6 +21,7 @@ export interface UpdateUserData {
   phone?: string | null;
   vehicle?: string | null;
   documentId?: string | null;
+  comuna?: string | null;
   role?: Role;
   status?: UserStatus;
   restaurantId?: string | null;
@@ -72,7 +74,8 @@ export interface UpdateRestaurantData {
   city?: string;
   address?: string;
   deliveryMinutes?: number;
-  monthlyGoal?: number;
+  monthlyGoal?: number | null;
+  dailyGoal?: number | null;
   accent?: string;
   logo?: string | null;
 }
