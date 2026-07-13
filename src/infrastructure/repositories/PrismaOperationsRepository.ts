@@ -6,109 +6,106 @@ import {
   OrderSummary,
   SystemStatus,
 } from '../../application/ports/operations';
-import { CourierAvailability, OrderStatus, Role, ServiceHealthStatus, UserStatus, RestaurantStatus } from '../../domain/enums';
+import {
+  CourierAvailability,
+  OrderStatus,
+  Role,
+  ServiceHealthStatus,
+  UserStatus,
+  RestaurantStatus,
+} from '../../domain/enums';
 import { prisma } from '../database/prisma/client';
-import { roleToPrisma, statusToPrisma, restaurantStatusToPrisma } from '../database/prisma/mappers';
+import {
+  roleToPrisma,
+  statusToPrisma,
+  restaurantStatusToPrisma,
+  orderStatusToPrisma,
+  orderStatusMap,
+} from '../database/prisma/mappers';
 
-const DEMO_ORDERS: OrderSummary[] = [
-  {
-    id: 'ord-001',
-    order_number: 'FF-1042',
-    status: OrderStatus.EN_CAMINO,
-    restaurant_name: 'FFCore',
-    customer_name: 'Laura Martínez',
-    courier_name: 'Sebastián Domínguez',
-    total_cop: 45000,
-    created_at: hoursAgo(1.2),
-    estimated_delivery_at: minutesFromNow(18),
-  },
-  {
-    id: 'ord-002',
-    order_number: 'FF-1041',
-    status: OrderStatus.EN_PREPARACION,
-    restaurant_name: 'FFCore',
-    customer_name: 'Pedro Gómez',
-    courier_name: null,
-    total_cop: 62000,
-    created_at: hoursAgo(0.5),
-    estimated_delivery_at: minutesFromNow(35),
-  },
-  {
-    id: 'ord-003',
-    order_number: 'FF-1040',
-    status: OrderStatus.EN_CAMINO,
-    restaurant_name: 'FFCore',
-    customer_name: 'Ana Ruiz',
-    courier_name: 'Sebastián Domínguez',
-    total_cop: 38500,
-    created_at: hoursAgo(0.8),
-    estimated_delivery_at: minutesFromNow(12),
-  },
-  {
-    id: 'ord-004',
-    order_number: 'FF-1039',
-    status: OrderStatus.RECIBIDO,
-    restaurant_name: 'FFCore',
-    customer_name: 'Carlos Díaz',
-    courier_name: null,
-    total_cop: 51000,
-    created_at: hoursAgo(0.2),
-    estimated_delivery_at: null,
-  },
-  {
-    id: 'ord-005',
-    order_number: 'FF-1038',
-    status: OrderStatus.EN_PREPARACION,
-    restaurant_name: 'FFCore',
-    customer_name: 'María López',
-    courier_name: null,
-    total_cop: 72000,
-    created_at: hoursAgo(0.35),
-    estimated_delivery_at: minutesFromNow(28),
-  },
-];
-
-const ACTIVE_ORDER_STATUSES = new Set<OrderStatus>([
+const ACTIVE_ORDER_STATUSES = [
   OrderStatus.RECIBIDO,
   OrderStatus.EN_PREPARACION,
   OrderStatus.LISTO,
   OrderStatus.EN_CAMINO,
-]);
+] as const;
 
-function hoursAgo(hours: number): string {
-  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+function startOfDay(d = new Date()) {
+  const date = new Date(d);
+  date.setHours(0, 0, 0, 0);
+  return date;
 }
 
-function minutesFromNow(minutes: number): string {
-  return new Date(Date.now() + minutes * 60 * 1000).toISOString();
+function endOfDay(d = new Date()) {
+  const date = new Date(d);
+  date.setHours(23, 59, 59, 999);
+  return date;
+}
+
+function dayRange(offsetDays: number) {
+  const base = new Date();
+  base.setDate(base.getDate() + offsetDays);
+  return { gte: startOfDay(base), lte: endOfDay(base) };
 }
 
 export class PrismaOperationsRepository implements IOperationsRepository {
   async getDashboardMetrics(): Promise<DashboardMetrics> {
-    const [activeCouriers, activeRestaurants, registeredClients] = await Promise.all([
+    const today = dayRange(0);
+    const yesterday = dayRange(-1);
+
+    const [
+      todayAgg,
+      yesterdayAgg,
+      activeCouriers,
+      activeRestaurants,
+      registeredClients,
+    ] = await Promise.all([
+      prisma.order.aggregate({
+        where: {
+          created_at: today,
+          status: { not: orderStatusToPrisma[OrderStatus.CANCELADO] },
+        },
+        _sum: { total: true },
+        _count: true,
+      }),
+      prisma.order.aggregate({
+        where: {
+          created_at: yesterday,
+          status: { not: orderStatusToPrisma[OrderStatus.CANCELADO] },
+        },
+        _sum: { total: true },
+      }),
       prisma.user.count({
-        where: { role: roleToPrisma[Role.DOMICILIARIO], status: statusToPrisma[UserStatus.ACTIVO] },
+        where: {
+          role: roleToPrisma[Role.DOMICILIARIO],
+          status: statusToPrisma[UserStatus.ACTIVO],
+        },
       }),
       prisma.restaurant.count({
         where: { status: restaurantStatusToPrisma[RestaurantStatus.ACTIVO] },
       }),
       prisma.user.count({
-        where: { role: roleToPrisma[Role.CLIENTE], status: statusToPrisma[UserStatus.ACTIVO] },
+        where: {
+          role: roleToPrisma[Role.CLIENTE],
+          status: statusToPrisma[UserStatus.ACTIVO],
+        },
       }),
     ]);
 
-    const salesYesterdayCop = 1_116_000;
-    const salesTodayCop = 1_250_000;
+    const salesTodayCop = todayAgg._sum.total ?? 0;
+    const salesYesterdayCop = yesterdayAgg._sum.total ?? 0;
     const salesDeltaPercent =
       salesYesterdayCop > 0
         ? Math.round(((salesTodayCop - salesYesterdayCop) / salesYesterdayCop) * 1000) / 10
-        : 0;
+        : salesTodayCop > 0
+          ? 100
+          : 0;
 
     return {
       sales_today_cop: salesTodayCop,
       sales_yesterday_cop: salesYesterdayCop,
       sales_delta_percent: salesDeltaPercent,
-      orders_today: 47,
+      orders_today: todayAgg._count,
       active_couriers: activeCouriers,
       active_restaurants: activeRestaurants,
       registered_clients: registeredClients,
@@ -116,11 +113,23 @@ export class PrismaOperationsRepository implements IOperationsRepository {
   }
 
   async getSystemStatus(): Promise<SystemStatus> {
+    const started = Date.now();
+    let apiLatency = 0;
+    let apiStatus = ServiceHealthStatus.OPERATIONAL;
+
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      apiLatency = Date.now() - started;
+    } catch {
+      apiLatency = Date.now() - started;
+      apiStatus = ServiceHealthStatus.DOWN;
+    }
+
     const services = [
-      { name: 'API Pedidos', status: ServiceHealthStatus.OPERATIONAL, latency_ms: 45 },
-      { name: 'Pagos', status: ServiceHealthStatus.OPERATIONAL, latency_ms: 120 },
-      { name: 'Push', status: ServiceHealthStatus.DEGRADED, latency_ms: 200 },
-      { name: 'Mapas', status: ServiceHealthStatus.OPERATIONAL, latency_ms: 80 },
+      { name: 'API Pedidos', status: apiStatus, latency_ms: apiLatency },
+      { name: 'Pagos', status: ServiceHealthStatus.OPERATIONAL, latency_ms: apiLatency },
+      { name: 'Push', status: ServiceHealthStatus.OPERATIONAL, latency_ms: apiLatency },
+      { name: 'Mapas', status: ServiceHealthStatus.OPERATIONAL, latency_ms: apiLatency },
     ];
 
     const overall = services.some((s) => s.status === ServiceHealthStatus.DOWN)
@@ -133,15 +142,35 @@ export class PrismaOperationsRepository implements IOperationsRepository {
   }
 
   async listOrders(status?: OrderStatus): Promise<OrderSummary[]> {
-    let orders = DEMO_ORDERS;
+    const where = status
+      ? { status: orderStatusToPrisma[status] }
+      : {
+          status: {
+            in: ACTIVE_ORDER_STATUSES.map((s) => orderStatusToPrisma[s]),
+          },
+        };
 
-    if (status) {
-      orders = orders.filter((order) => order.status === status);
-    } else {
-      orders = orders.filter((order) => ACTIVE_ORDER_STATUSES.has(order.status));
-    }
+    const orders = await prisma.order.findMany({
+      where,
+      include: {
+        restaurant: { select: { name: true } },
+        delivery_person: { select: { name: true } },
+      },
+      orderBy: { created_at: 'desc' },
+      take: 100,
+    });
 
-    return orders.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return orders.map((order) => ({
+      id: order.id,
+      order_number: order.code,
+      status: orderStatusMap[order.status],
+      restaurant_name: order.restaurant.name,
+      customer_name: order.customer_name,
+      courier_name: order.delivery_person?.name ?? null,
+      total_cop: order.total,
+      created_at: order.created_at.toISOString(),
+      estimated_delivery_at: null,
+    }));
   }
 
   async listActiveCouriers(): Promise<ActiveCourier[]> {
@@ -153,47 +182,89 @@ export class PrismaOperationsRepository implements IOperationsRepository {
       orderBy: { name: 'asc' },
     });
 
-    const enRutaNames = new Set(
-      DEMO_ORDERS.filter((o) => o.status === OrderStatus.EN_CAMINO && o.courier_name)
-        .map((o) => o.courier_name as string)
+    if (couriers.length === 0) return [];
+
+    const activeOrders = await prisma.order.groupBy({
+      by: ['delivery_person_id'],
+      where: {
+        delivery_person_id: { in: couriers.map((c) => c.id) },
+        status: {
+          in: [
+            orderStatusToPrisma[OrderStatus.LISTO],
+            orderStatusToPrisma[OrderStatus.EN_CAMINO],
+          ],
+        },
+      },
+      _count: true,
+    });
+
+    const countByCourier = new Map(
+      activeOrders
+        .filter((row) => row.delivery_person_id)
+        .map((row) => [row.delivery_person_id as string, row._count])
     );
 
-    return couriers.map((courier, index) => {
-      const onRoute = enRutaNames.has(courier.name);
-      const activeOrders = DEMO_ORDERS.filter(
-        (o) => o.courier_name === courier.name && o.status === OrderStatus.EN_CAMINO
-      ).length;
-
+    return couriers.map((courier) => {
+      const active = countByCourier.get(courier.id) ?? 0;
       return {
         id: courier.id,
         name: courier.name,
         email: courier.email,
         phone: courier.phone,
         vehicle: courier.vehicle,
-        availability: onRoute
-          ? CourierAvailability.EN_RUTA
-          : index === 0 && couriers.length > 0
-            ? CourierAvailability.DISPONIBLE
-            : CourierAvailability.OFFLINE,
-        active_orders: activeOrders,
+        availability:
+          active > 0 ? CourierAvailability.EN_RUTA : CourierAvailability.DISPONIBLE,
+        active_orders: active,
       };
     });
   }
 
   async getOperationsMetrics(): Promise<OperationsMetrics> {
-    const activeOrders = DEMO_ORDERS.filter((o) => ACTIVE_ORDER_STATUSES.has(o.status));
-    const couriers = await this.listActiveCouriers();
+    const activeStatuses = ACTIVE_ORDER_STATUSES.map((s) => orderStatusToPrisma[s]);
+
+    const [activeOrders, couriers, deliveredToday] = await Promise.all([
+      prisma.order.findMany({
+        where: { status: { in: activeStatuses } },
+        select: {
+          status: true,
+          delivery_person_id: true,
+        },
+      }),
+      this.listActiveCouriers(),
+      prisma.order.findMany({
+        where: {
+          status: orderStatusToPrisma[OrderStatus.ENTREGADO],
+          created_at: dayRange(0),
+        },
+        select: { created_at: true, updated_at: true },
+      }),
+    ]);
+
+    const avgDeliveryMinutes =
+      deliveredToday.length === 0
+        ? 0
+        : Math.round(
+            deliveredToday.reduce((sum, o) => {
+              const mins = (o.updated_at.getTime() - o.created_at.getTime()) / 60_000;
+              return sum + Math.max(0, mins);
+            }, 0) / deliveredToday.length
+          );
 
     return {
       orders_in_progress: activeOrders.length,
-      orders_en_camino: activeOrders.filter((o) => o.status === OrderStatus.EN_CAMINO).length,
-      orders_pendientes_asignacion: activeOrders.filter(
-        (o) => o.status === OrderStatus.RECIBIDO && !o.courier_name
+      orders_en_camino: activeOrders.filter(
+        (o) => o.status === orderStatusToPrisma[OrderStatus.EN_CAMINO]
       ).length,
-      avg_delivery_minutes: 28,
-      couriers_available: couriers.filter((c) => c.availability === CourierAvailability.DISPONIBLE)
+      orders_pendientes_asignacion: activeOrders.filter(
+        (o) =>
+          o.status === orderStatusToPrisma[OrderStatus.RECIBIDO] && !o.delivery_person_id
+      ).length,
+      avg_delivery_minutes: avgDeliveryMinutes,
+      couriers_available: couriers.filter(
+        (c) => c.availability === CourierAvailability.DISPONIBLE
+      ).length,
+      couriers_en_ruta: couriers.filter((c) => c.availability === CourierAvailability.EN_RUTA)
         .length,
-      couriers_en_ruta: couriers.filter((c) => c.availability === CourierAvailability.EN_RUTA).length,
     };
   }
 }
