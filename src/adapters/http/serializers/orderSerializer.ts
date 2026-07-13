@@ -76,6 +76,7 @@ export function serializeOrder(order: OrderWithExtras) {
     status: order.status,
     total: order.total,
     delivery_fee: order.deliveryFee,
+    restaurant_id: order.restaurantId,
     courier_id: order.deliveryPersonId,
     courier_name: order.courierName ?? null,
     courier_phone: order.courierPhone ?? null,
