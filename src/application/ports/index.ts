@@ -78,6 +78,7 @@ export interface UpdateRestaurantData {
   dailyGoal?: number | null;
   accent?: string;
   logo?: string | null;
+  coverImage?: string | null;
 }
 
 export interface IRestaurantRepository {

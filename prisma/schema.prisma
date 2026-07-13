@@ -87,6 +87,7 @@ model Restaurant {
   accent           String           @default("#4f46e5")
   initials         String
   logo             String?
+  cover_image      String?
   status           RestaurantStatus @default(Pendiente)
 
   nequi_number     String?

@@ -26,6 +26,7 @@ export async function updateRestaurantController(req: Request, res: Response, ne
         dailyGoal: req.body.daily_goal,
         accent: req.body.accent,
         logo: req.body.logo,
+        coverImage: req.body.cover_image,
       }
     );
     res.json(serializeRestaurantProfile(restaurant));
@@ -258,9 +259,11 @@ export async function getDispatchSummaryController(req: Request, res: Response, 
 export async function listAvailableCouriersController(req: Request, res: Response, next: NextFunction) {
   try {
     const batchSize = Number(req.query.batch_size ?? 3);
+    const zone = typeof req.query.zone === 'string' ? req.query.zone : undefined;
     const couriers = await container.listAvailableCouriersUseCase.execute(
       param(req, 'restaurantId'),
-      batchSize
+      batchSize,
+      zone,
     );
     res.json({
       data: couriers.map((c) => ({
@@ -270,6 +273,7 @@ export async function listAvailableCouriersController(req: Request, res: Respons
         average_rating: c.averageRating,
         active_orders: c.activeOrders,
         can_take_batch: c.canTakeBatch,
+        unavailable_reason: c.unavailableReason,
       })),
     });
   } catch (error) {

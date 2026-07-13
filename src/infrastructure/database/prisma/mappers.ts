@@ -99,6 +99,7 @@ export function mapRestaurant(record: PrismaRestaurant): Restaurant {
     accent: record.accent,
     initials: record.initials,
     logo: (record as { logo?: string | null }).logo ?? null,
+    coverImage: (record as { cover_image?: string | null }).cover_image ?? null,
     status: restaurantStatusMap[record.status],
     
     // Payment config

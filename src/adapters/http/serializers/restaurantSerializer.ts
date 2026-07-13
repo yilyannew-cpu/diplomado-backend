@@ -13,6 +13,7 @@ export function serializeRestaurantProfile(restaurant: Restaurant) {
     accent: restaurant.accent,
     initials: restaurant.initials,
     logo: restaurant.logo ?? null,
+    cover_image: restaurant.coverImage ?? null,
     rating: restaurant.rating,
     status: restaurant.status,
   };
