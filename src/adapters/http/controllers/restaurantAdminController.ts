@@ -51,6 +51,22 @@ export async function uploadRestaurantLogoController(req: Request, res: Response
   }
 }
 
+export async function uploadRestaurantCoverController(req: Request, res: Response, next: NextFunction) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Archivo requerido' });
+    }
+    const { filePathToDataUrl } = await import('../../../infrastructure/services/UploadService');
+    const coverImage = filePathToDataUrl(req.file.path, req.file.mimetype);
+    const restaurant = await container.updateRestaurantUseCase.execute(param(req, 'restaurantId'), {
+      coverImage,
+    });
+    res.json(serializeRestaurantProfile(restaurant));
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getDashboardController(req: Request, res: Response, next: NextFunction) {
   try {
     const data = await container.getRestaurantDashboardUseCase.execute(param(req, 'restaurantId'));
