@@ -14,6 +14,21 @@ const orderInclude = {
   delivery_person: { select: { id: true, name: true, phone: true } },
 };
 
+type OrderRecordWithIncludes = {
+  items: Array<{ id: string; product: { name: string } } & Record<string, unknown>>;
+} & Record<string, unknown>;
+
+function mapOrderWithProductNames(record: OrderRecordWithIncludes): OrderWithProductNames {
+  const order = mapOrder(record as any);
+  return {
+    ...order,
+    items: record.items.map((item) => ({
+      ...order.items.find((i) => i.id === item.id)!,
+      productName: item.product.name,
+    })),
+  };
+}
+
 export class PrismaOrderRepository implements IOrderRepository {
   async create(data: CreateOrderData & { code: string; total: number; deliveryFee: number; itemsWithPrice: { productId: string; quantity: number; unitPrice: number; customizations?: Record<string, unknown> }[] }) {
     const record = await prisma.order.create({
@@ -38,14 +53,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       },
       include: orderInclude,
     });
-    const order = mapOrder(record as any);
-    return {
-      ...order,
-      items: record.items.map((item) => ({
-        ...order.items.find((i) => i.id === item.id)!,
-        productName: item.product.name,
-      })),
-    };
+    return mapOrderWithProductNames(record as any);
   }
 
   async findById(id: string) {
@@ -53,7 +61,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       where: { id },
       include: orderInclude,
     });
-    return record ? mapOrder(record as any) : null;
+    return record ? mapOrderWithProductNames(record as any) : null;
   }
 
   async findByCode(code: string) {
@@ -62,15 +70,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       include: orderInclude,
     });
     if (!record) return null;
-
-    const order = mapOrder(record as any);
-    return {
-      ...order,
-      items: record.items.map((item) => ({
-        ...order.items.find((i) => i.id === item.id)!,
-        productName: item.product.name,
-      })),
-    };
+    return mapOrderWithProductNames(record as any);
   }
 
   async findLatestActiveByPhone(phone: string) {
@@ -102,15 +102,7 @@ export class PrismaOrderRepository implements IOrderRepository {
     });
 
     if (!match) return null;
-
-    const order = mapOrder(match as any);
-    return {
-      ...order,
-      items: match.items.map((item) => ({
-        ...order.items.find((i) => i.id === item.id)!,
-        productName: item.product.name,
-      })),
-    };
+    return mapOrderWithProductNames(match as any);
   }
 
   async listByRestaurant(filters: ListRestaurantOrdersFilters): Promise<OrderWithProductNames[]> {
@@ -125,16 +117,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       orderBy: { created_at: 'desc' },
     });
 
-    return records.map((record) => {
-      const order = mapOrder(record as any);
-      return {
-        ...order,
-        items: record.items.map((item) => ({
-          ...order.items.find((i) => i.id === item.id)!,
-          productName: item.product.name,
-        })),
-      };
-    });
+    return records.map((record) => mapOrderWithProductNames(record as any));
   }
 
   async updateStatus(id: string, status: OrderStatus) {
@@ -146,7 +129,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       },
       include: orderInclude,
     });
-    return mapOrder(record as any);
+    return mapOrderWithProductNames(record as any);
   }
 
   async rejectPayment(id: string, observation: string) {
@@ -160,7 +143,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       },
       include: orderInclude,
     });
-    return mapOrder(record as any);
+    return mapOrderWithProductNames(record as any);
   }
 
   async assignCourier(id: string, courierId: string) {
@@ -169,7 +152,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       data: { delivery_person_id: courierId },
       include: orderInclude,
     });
-    return mapOrder(record as any);
+    return mapOrderWithProductNames(record as any);
   }
 
   async batchAssignCourier(orderIds: string[], courierId: string) {
@@ -182,7 +165,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       where: { id: { in: orderIds } },
       include: orderInclude,
     });
-    return records.map((r) => mapOrder(r as any));
+    return records.map((r) => mapOrderWithProductNames(r as any));
   }
 
   async dispatchOrders(orderIds: string[], restaurantId: string) {
@@ -224,7 +207,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       where: { id: { in: orders.map((o) => o.id) } },
       include: orderInclude,
     });
-    return updated.map((r) => mapOrder(r as any));
+    return updated.map((r) => mapOrderWithProductNames(r as any));
   }
 
   async listAvailableForDelivery(restaurantId?: string) {
@@ -239,7 +222,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       include: orderInclude,
       orderBy: { created_at: 'asc' },
     });
-    return records.map((r) => mapOrder(r as any));
+    return records.map((r) => mapOrderWithProductNames(r as any));
   }
 
   async listByCourier(courierId: string) {
@@ -248,7 +231,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       include: orderInclude,
       orderBy: { created_at: 'desc' },
     });
-    return records.map((r) => mapOrder(r as any));
+    return records.map((r) => mapOrderWithProductNames(r as any));
   }
 
   async countInRouteByCourier(courierId: string) {
@@ -295,7 +278,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       where: { id: orderId },
       include: orderInclude,
     });
-    return mapOrder(updated as any);
+    return mapOrderWithProductNames(updated as any);
   }
 
   async completeDeliveryByCourier(orderId: string, courierId: string) {
@@ -319,7 +302,7 @@ export class PrismaOrderRepository implements IOrderRepository {
       },
       include: orderInclude,
     });
-    return mapOrder(record as any);
+    return mapOrderWithProductNames(record as any);
   }
 
   async countAll() {
