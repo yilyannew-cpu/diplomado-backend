@@ -3,6 +3,7 @@ import { OrderStatus } from '../../../domain/enums';
 
 interface OrderItemWithProduct extends OrderItem {
   productName?: string;
+  productImage?: string | null;
 }
 
 interface OrderWithExtras extends Order {
@@ -35,6 +36,7 @@ export function serializeOrderItem(item: OrderItemWithProduct) {
       line_id: item.id,
       product_id: item.productId,
       product_name: item.productName ?? '',
+      product_image: item.productImage ?? null,
       quantity: item.quantity,
       unit_price: item.unitPrice,
       customizations: null,
@@ -45,6 +47,7 @@ export function serializeOrderItem(item: OrderItemWithProduct) {
     line_id: item.id,
     product_id: item.productId,
     product_name: item.productName ?? '',
+    product_image: item.productImage ?? null,
     quantity: item.quantity,
     unit_price: item.unitPrice,
     customizations: {

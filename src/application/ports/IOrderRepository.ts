@@ -27,7 +27,7 @@ export interface ListRestaurantOrdersFilters {
 }
 
 export interface OrderWithProductNames extends Order {
-  items: Array<Order['items'][number] & { productName: string }>;
+  items: Array<Order['items'][number] & { productName: string; productImage?: string | null }>;
 }
 
 export interface IOrderRepository {

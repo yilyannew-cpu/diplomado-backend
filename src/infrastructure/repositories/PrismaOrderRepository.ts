@@ -10,12 +10,15 @@ import { OrderStatus } from '../../domain/enums';
 import { NotFoundError, DomainError, ForbiddenError } from '../../domain/errors';
 
 const orderInclude = {
-  items: { include: { product: { select: { name: true } } } },
+  items: { include: { product: { select: { name: true, image: true } } } },
   delivery_person: { select: { id: true, name: true, phone: true } },
 };
 
 type OrderRecordWithIncludes = {
-  items: Array<{ id: string; product: { name: string } } & Record<string, unknown>>;
+  items: Array<{
+    id: string;
+    product: { name: string; image: string | null };
+  } & Record<string, unknown>>;
 } & Record<string, unknown>;
 
 function mapOrderWithProductNames(record: OrderRecordWithIncludes): OrderWithProductNames {
@@ -25,6 +28,7 @@ function mapOrderWithProductNames(record: OrderRecordWithIncludes): OrderWithPro
     items: record.items.map((item) => ({
       ...order.items.find((i) => i.id === item.id)!,
       productName: item.product.name,
+      productImage: item.product.image ?? null,
     })),
   };
 }
