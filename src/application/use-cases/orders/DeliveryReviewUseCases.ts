@@ -1,4 +1,4 @@
-import { IOrderRepository } from '../../ports';
+import { IOrderRepository } from '../../ports/IOrderRepository';
 import { ConflictError, DomainError, NotFoundError } from '../../../domain/errors';
 import { OrderStatus } from '../../../domain/enums';
 import { prisma } from '../../../infrastructure/database/prisma/client';

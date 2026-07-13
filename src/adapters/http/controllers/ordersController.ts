@@ -282,7 +282,7 @@ export async function submitDeliveryReviewController(req: Request, res: Response
           ? null
           : Number(req.body.courier_rating),
       courierComment: req.body.courier_comment,
-      customerName: req.body.customer_name ?? req.user?.name ?? null,
+      customerName: req.body.customer_name ?? null,
     });
     res.status(201).json(result);
   } catch (error) {
