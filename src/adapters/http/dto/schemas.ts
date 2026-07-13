@@ -339,6 +339,14 @@ export const createOrderSchema = z.object({
   notes: z.string().max(500).optional(),
   zone: z.string().max(100).optional(),
   restaurant_id: z.string().min(1),
+  /** Tarifa por km de ruta (COP). Mín. 4500; múltiplo de 100. */
+  delivery_fee: z
+    .number()
+    .int()
+    .min(4500)
+    .max(200000)
+    .refine((n) => n % 100 === 0, { message: 'delivery_fee debe ser múltiplo de 100' })
+    .optional(),
   items: z.array(orderItemSchema).min(1, 'Debe incluir al menos un producto'),
 });
 

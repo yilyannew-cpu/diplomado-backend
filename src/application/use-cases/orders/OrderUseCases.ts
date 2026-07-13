@@ -61,7 +61,19 @@ export class CreateOrderUseCase {
       subtotal += finalUnitPrice * item.quantity;
     }
 
-    const deliveryFee = 5000;
+    // Tarifa por km de ruta (frontend): base 4500 + km extra + recargo tráfico, redondeada a centena.
+    const DEFAULT_FEE = 4_500;
+    const MIN_FEE = 4_500;
+    const MAX_FEE = 200_000;
+    const rawFee = data.deliveryFee;
+    const deliveryFee =
+      typeof rawFee === 'number' &&
+      Number.isInteger(rawFee) &&
+      rawFee >= MIN_FEE &&
+      rawFee <= MAX_FEE &&
+      rawFee % 100 === 0
+        ? rawFee
+        : DEFAULT_FEE;
     const total = subtotal + deliveryFee;
     const count = await this.orderRepo.countAll();
     const code = `PED-${String(count + 101).padStart(3, '0')}`;

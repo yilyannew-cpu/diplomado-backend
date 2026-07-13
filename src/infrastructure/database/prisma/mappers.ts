@@ -225,5 +225,11 @@ export function mapOrder(record: PrismaOrder & { items: PrismaOrderItem[] }): Or
   };
 }
 
-export { roleToPrisma, statusToPrisma, restaurantStatusToPrisma, orderStatusToPrisma };
+export {
+  roleToPrisma,
+  statusToPrisma,
+  restaurantStatusToPrisma,
+  orderStatusToPrisma,
+  orderStatusMap,
+};
 

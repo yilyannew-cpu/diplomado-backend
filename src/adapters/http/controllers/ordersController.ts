@@ -26,6 +26,7 @@ export async function createOrderController(req: Request, res: Response, next: N
       notes: req.body.notes,
       zone: req.body.zone,
       restaurantId: req.body.restaurant_id,
+      deliveryFee: req.body.delivery_fee,
       items: req.body.items.map((item: Record<string, unknown>) => ({
         productId: item.product_id,
         quantity: item.quantity,
