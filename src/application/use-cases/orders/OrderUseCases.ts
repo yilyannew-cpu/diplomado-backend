@@ -3,6 +3,11 @@ import { IProductRepository } from '../../ports/IProductRepository';
 import { ProductWithCategory } from '../../../domain/entities/Product';
 import { OrderStatus } from '../../../domain/enums';
 import { NotFoundError, DomainError } from '../../../domain/errors';
+import {
+  assertCourierCanTakeBatch,
+  loadCourierActiveOrders,
+  normalizeZone,
+} from '../../../shared/courierLimits';
 
 const CATEGORY_ADDITIONS = 'Adiciones';
 const CATEGORY_SIDES = 'Acompañamientos';
@@ -235,6 +240,15 @@ export class AssignCourierUseCase {
   async execute(orderId: string, courierId: string) {
     const order = await this.orderRepo.findById(orderId);
     if (!order) throw new NotFoundError('Pedido no encontrado');
+
+    const load = await loadCourierActiveOrders(courierId);
+    assertCourierCanTakeBatch({
+      load,
+      restaurantId: order.restaurantId,
+      zone: order.zone,
+      batchSize: 1,
+    });
+
     return this.orderRepo.assignCourier(orderId, courierId);
   }
 }
@@ -244,6 +258,33 @@ export class BatchAssignCourierUseCase {
 
   async execute(orderIds: string[], courierId: string) {
     if (!orderIds.length) throw new DomainError('INVALID_ORDERS', 'Debe incluir al menos un pedido');
+
+    const orders = await Promise.all(orderIds.map((id) => this.orderRepo.findById(id)));
+    const found = orders.filter((o): o is NonNullable<typeof o> => Boolean(o));
+    if (found.length !== orderIds.length) {
+      throw new NotFoundError('Uno o más pedidos no existen');
+    }
+
+    const restaurantId = found[0].restaurantId;
+    const zone = normalizeZone(found[0].zone);
+    const mixed = found.some(
+      (o) => o.restaurantId !== restaurantId || normalizeZone(o.zone) !== zone,
+    );
+    if (mixed) {
+      throw new DomainError(
+        'INVALID_BATCH',
+        'El lote debe ser del mismo restaurante y la misma zona.',
+      );
+    }
+
+    const load = await loadCourierActiveOrders(courierId);
+    assertCourierCanTakeBatch({
+      load,
+      restaurantId,
+      zone: found[0].zone,
+      batchSize: found.length,
+    });
+
     return this.orderRepo.batchAssignCourier(orderIds, courierId);
   }
 }

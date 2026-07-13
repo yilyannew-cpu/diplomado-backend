@@ -155,7 +155,7 @@ export class GetDispatchSummaryUseCase {
 export class ListAvailableCouriersUseCase {
   constructor(private analyticsRepo: IAnalyticsRepository) {}
 
-  async execute(restaurantId: string, batchSize: number) {
-    return this.analyticsRepo.listAvailableCouriers(restaurantId, batchSize);
+  async execute(restaurantId: string, batchSize: number, zone?: string | null) {
+    return this.analyticsRepo.listAvailableCouriers(restaurantId, batchSize, zone);
   }
 }
