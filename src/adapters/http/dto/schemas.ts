@@ -120,10 +120,15 @@ export const updateProfileSchema = z
       .min(1, 'Selecciona una comuna')
       .refine(isCucutaComuna, { message: 'Selecciona una comuna válida' })
       .optional(),
+    avatar: imageUrlSchema.optional(),
   })
   .refine(
-    (data) => data.email !== undefined || data.phone !== undefined || data.comuna !== undefined,
-    { message: 'Debe enviar al menos email, teléfono o comuna' },
+    (data) =>
+      data.email !== undefined ||
+      data.phone !== undefined ||
+      data.comuna !== undefined ||
+      data.avatar !== undefined,
+    { message: 'Debe enviar al menos email, teléfono, comuna o avatar' },
   );
 
 export const changePasswordSchema = z

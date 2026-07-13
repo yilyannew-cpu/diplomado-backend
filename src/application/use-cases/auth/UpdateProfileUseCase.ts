@@ -7,16 +7,25 @@ export interface UpdateProfileInput {
   email?: string;
   phone?: string;
   comuna?: string;
+  avatar?: string;
 }
 
 export class UpdateProfileUseCase {
   constructor(private readonly userRepository: IUserRepository) {}
 
   async execute(userId: string, role: Role, input: UpdateProfileInput) {
-    if (role === Role.ADMIN) {
+    if (role === Role.ADMIN && input.avatar === undefined) {
       throw new ForbiddenError(
         'PROFILE_UPDATE_FORBIDDEN',
         'Los administradores de restaurante solo pueden actualizar su contraseña'
+      );
+    }
+
+    // Avatar de perfil: permitido para domiciliario (y cliente); admin no cambia identidad de restaurante aquí.
+    if (role === Role.ADMIN && input.avatar !== undefined) {
+      throw new ForbiddenError(
+        'PROFILE_UPDATE_FORBIDDEN',
+        'Los administradores de restaurante no actualizan avatar de perfil aquí'
       );
     }
 
@@ -38,6 +47,7 @@ export class UpdateProfileUseCase {
       ...(input.email !== undefined && { email: input.email.toLowerCase().trim() }),
       ...(input.phone !== undefined && { phone: input.phone.trim() }),
       ...(input.comuna !== undefined && { comuna: input.comuna.trim() }),
+      ...(input.avatar !== undefined && { avatar: input.avatar }),
     });
 
     return toPublicUser(updated);

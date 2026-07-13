@@ -37,9 +37,11 @@ export function serializeUserPublic(user: PublicUser) {
     role: user.role,
     phone: user.phone,
     status: user.status,
+    avatar: user.avatar ?? null,
   };
   if (user.restaurantId) base.restaurant_id = user.restaurantId;
   if (user.vehicle) base.vehicle = user.vehicle;
+  if (user.documentId) base.document_id = user.documentId;
   base.comuna = user.comuna ?? null;
   return base;
 }
