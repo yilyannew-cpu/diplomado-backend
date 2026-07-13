@@ -184,8 +184,7 @@ export class PrismaOperationsRepository implements IOperationsRepository {
 
     if (couriers.length === 0) return [];
 
-    const activeOrders = await prisma.order.groupBy({
-      by: ['delivery_person_id'],
+    const activeOrders = await prisma.order.findMany({
       where: {
         delivery_person_id: { in: couriers.map((c) => c.id) },
         status: {
@@ -195,25 +194,38 @@ export class PrismaOperationsRepository implements IOperationsRepository {
           ],
         },
       },
-      _count: true,
+      select: {
+        delivery_person_id: true,
+        status: true,
+      },
     });
 
-    const countByCourier = new Map(
-      activeOrders
-        .filter((row) => row.delivery_person_id)
-        .map((row) => [row.delivery_person_id as string, row._count])
-    );
+    const loadByCourier = new Map<string, { listo: number; enCamino: number }>();
+    for (const order of activeOrders) {
+      const id = order.delivery_person_id!;
+      const cur = loadByCourier.get(id) ?? { listo: 0, enCamino: 0 };
+      if (order.status === orderStatusToPrisma[OrderStatus.EN_CAMINO]) cur.enCamino += 1;
+      else cur.listo += 1;
+      loadByCourier.set(id, cur);
+    }
 
     return couriers.map((courier) => {
-      const active = countByCourier.get(courier.id) ?? 0;
+      const load = loadByCourier.get(courier.id) ?? { listo: 0, enCamino: 0 };
+      const active = load.listo + load.enCamino;
+      // Disponible solo si no tiene pedidos Listo ni EnCamino.
+      // EnCamino = ya salió; Listo asignado = aún no libre para otros restaurantes.
+      const availability =
+        active === 0
+          ? CourierAvailability.DISPONIBLE
+          : CourierAvailability.EN_RUTA;
+
       return {
         id: courier.id,
         name: courier.name,
         email: courier.email,
         phone: courier.phone,
         vehicle: courier.vehicle,
-        availability:
-          active > 0 ? CourierAvailability.EN_RUTA : CourierAvailability.DISPONIBLE,
+        availability,
         active_orders: active,
       };
     });

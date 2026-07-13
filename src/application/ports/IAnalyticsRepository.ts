@@ -107,12 +107,17 @@ export interface IAnalyticsRepository {
   getActiveDeliveries(restaurantId: string): Promise<ActiveDeliveryGroup[]>;
   listDispatches(restaurantId: string, from: Date, to: Date): Promise<DispatchItem[]>;
   getDispatchSummary(restaurantId: string, period: 'today' | 'month' | 'year'): Promise<DispatchSummary>;
-  listAvailableCouriers(restaurantId: string, batchSize: number): Promise<Array<{
+  listAvailableCouriers(
+    restaurantId: string,
+    batchSize: number,
+    zone?: string | null,
+  ): Promise<Array<{
     id: string;
     name: string;
     vehicle: string | null;
     averageRating: number;
     activeOrders: number;
     canTakeBatch: boolean;
+    unavailableReason: string | null;
   }>>;
 }

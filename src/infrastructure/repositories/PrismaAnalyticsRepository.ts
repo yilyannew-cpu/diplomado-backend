@@ -1,6 +1,6 @@
 import { IAnalyticsRepository, ActiveDeliveryGroup } from '../../application/ports/IAnalyticsRepository';
 import { prisma } from '../database/prisma/client';
-import { MAX_ORDERS_PER_COURIER } from '../../shared/courierLimits';
+import { evaluateCourierBatchCapacity } from '../../shared/courierLimits';
 
 const APP_COMMISSION_RATE = 0.05;
 
@@ -443,10 +443,8 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
     return { today, month, year };
   }
 
-  async listAvailableCouriers(restaurantId: string, batchSize: number) {
-    // Mismo criterio que superadmin (Seguimiento logístico): todos los domiciliarios Activos.
-    // El registro público no liga sede; filtrar solo por restaurant_id dejaba el modal vacío
-    // aunque el courier sí apareciera en operaciones.
+  async listAvailableCouriers(restaurantId: string, batchSize: number, zone?: string | null) {
+    // Mismo universo que operaciones: domiciliarios Activos.
     const couriers = await prisma.user.findMany({
       where: {
         role: 'domiciliario',
@@ -456,35 +454,62 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
       orderBy: { name: 'asc' },
     });
 
-    const activeCounts = await prisma.order.groupBy({
-      by: ['delivery_person_id'],
+    if (couriers.length === 0) return [];
+
+    const activeOrders = await prisma.order.findMany({
       where: {
-        status: { in: ['EnCamino', 'Listo'] },
-        delivery_person_id: { in: couriers.length ? couriers.map((c) => c.id) : ['__none__'] },
+        delivery_person_id: { in: couriers.map((c) => c.id) },
+        status: { in: ['Listo', 'EnCamino'] },
       },
-      _count: true,
+      select: {
+        id: true,
+        status: true,
+        restaurant_id: true,
+        zone: true,
+        delivery_person_id: true,
+      },
     });
 
-    const countMap = new Map(
-      activeCounts.map((c) => [c.delivery_person_id!, c._count])
-    );
+    const byCourier = new Map<string, typeof activeOrders>();
+    for (const order of activeOrders) {
+      const id = order.delivery_person_id!;
+      const list = byCourier.get(id) ?? [];
+      list.push(order);
+      byCourier.set(id, list);
+    }
 
     const ranked = couriers.map((c) => {
-      const activeOrders = countMap.get(c.id) ?? 0;
+      const assigned = byCourier.get(c.id) ?? [];
+      const load = {
+        enCamino: assigned.filter((o) => o.status === 'EnCamino'),
+        waitingAtRestaurant: assigned.filter((o) => o.status === 'Listo'),
+      };
+      const evaluation = evaluateCourierBatchCapacity({
+        load,
+        restaurantId,
+        zone,
+        batchSize,
+      });
       const sedeRank =
         c.restaurant_id === restaurantId ? 0 : c.restaurant_id == null ? 1 : 2;
+
       return {
         id: c.id,
         name: c.name,
         vehicle: c.vehicle,
         averageRating: 4.8,
-        activeOrders,
-        canTakeBatch: activeOrders + batchSize <= MAX_ORDERS_PER_COURIER,
+        activeOrders: assigned.length,
+        canTakeBatch: evaluation.canTake,
+        unavailableReason: evaluation.reason,
         sedeRank,
       };
     });
 
-    ranked.sort((a, b) => a.sedeRank - b.sedeRank || a.name.localeCompare(b.name, 'es'));
+    ranked.sort((a, b) => {
+      // Primero quienes sí pueden tomar el lote.
+      if (a.canTakeBatch !== b.canTakeBatch) return a.canTakeBatch ? -1 : 1;
+      return a.sedeRank - b.sedeRank || a.name.localeCompare(b.name, 'es');
+    });
 
     return ranked.map(({ sedeRank: _sedeRank, ...courier }) => courier);
   }

@@ -2,7 +2,11 @@ import { IOrderRepository } from '../../ports/IOrderRepository';
 import { IUserRepository } from '../../ports';
 import { OrderStatus, Role, UserStatus } from '../../../domain/enums';
 import { DomainError, ForbiddenError, NotFoundError } from '../../../domain/errors';
-import { MAX_ORDERS_PER_COURIER } from '../../../shared/courierLimits';
+import {
+  assertCourierCanTakeBatch,
+  loadCourierActiveOrders,
+  MAX_ORDERS_PER_COURIER,
+} from '../../../shared/courierLimits';
 
 /** @deprecated Preferir MAX_ORDERS_PER_COURIER. */
 export const COURIER_MAX_IN_ROUTE = MAX_ORDERS_PER_COURIER;
@@ -43,13 +47,13 @@ export class AcceptDeliveryUseCase {
       );
     }
 
-    const inRoute = await this.orderRepo.countInRouteByCourier(courierId);
-    if (inRoute >= COURIER_MAX_IN_ROUTE) {
-      throw new DomainError(
-        'COURIER_AT_CAPACITY',
-        `Ya tienes ${COURIER_MAX_IN_ROUTE} pedidos en camino. Completa uno antes de aceptar más.`,
-      );
-    }
+    const load = await loadCourierActiveOrders(courierId);
+    assertCourierCanTakeBatch({
+      load,
+      restaurantId: order.restaurantId,
+      zone: order.zone,
+      batchSize: 1,
+    });
 
     return this.orderRepo.assignCourier(orderId, courierId);
   }
