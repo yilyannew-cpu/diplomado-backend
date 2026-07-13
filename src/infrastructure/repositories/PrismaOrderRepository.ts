@@ -72,6 +72,46 @@ export class PrismaOrderRepository implements IOrderRepository {
     };
   }
 
+  async findLatestActiveByPhone(phone: string) {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 7) return null;
+
+    const records = await prisma.order.findMany({
+      where: {
+        status: {
+          notIn: [
+            orderStatusToPrisma[OrderStatus.ENTREGADO],
+            orderStatusToPrisma[OrderStatus.CANCELADO],
+          ],
+        },
+      },
+      orderBy: { created_at: 'desc' },
+      take: 80,
+      include: orderInclude,
+    });
+
+    const last10 = digits.slice(-10);
+    const match = records.find((record) => {
+      const orderDigits = record.phone.replace(/\D/g, '');
+      return (
+        orderDigits === digits ||
+        orderDigits.endsWith(last10) ||
+        digits.endsWith(orderDigits.slice(-10))
+      );
+    });
+
+    if (!match) return null;
+
+    const order = mapOrder(match as any);
+    return {
+      ...order,
+      items: match.items.map((item) => ({
+        ...order.items.find((i) => i.id === item.id)!,
+        productName: item.product.name,
+      })),
+    };
+  }
+
   async listByRestaurant(filters: ListRestaurantOrdersFilters): Promise<OrderWithProductNames[]> {
     const where: Record<string, unknown> = { restaurant_id: filters.restaurantId };
     if (filters.statuses?.length) {

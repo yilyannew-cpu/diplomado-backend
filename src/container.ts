@@ -56,6 +56,7 @@ import {
   ListAvailableDeliveriesUseCase,
   ListCourierOrdersUseCase,
   GetOrderByCodeUseCase,
+  GetMyActiveOrderUseCase,
 } from './application/use-cases/orders/OrderUseCases';
 import {
   ListPromotionsUseCase,
@@ -159,6 +160,7 @@ export const container = {
   listAvailableDeliveriesUseCase: new ListAvailableDeliveriesUseCase(orderRepository),
   listCourierOrdersUseCase: new ListCourierOrdersUseCase(orderRepository),
   getOrderByCodeUseCase: new GetOrderByCodeUseCase(orderRepository),
+  getMyActiveOrderUseCase: new GetMyActiveOrderUseCase(orderRepository, userRepository),
 
   listPromotionsUseCase: new ListPromotionsUseCase(promotionRepository),
   listActivePromotionsUseCase: new ListActivePromotionsUseCase(promotionRepository),

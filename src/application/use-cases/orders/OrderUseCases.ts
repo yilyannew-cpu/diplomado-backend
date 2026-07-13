@@ -282,3 +282,20 @@ export class GetOrderByCodeUseCase {
     return order;
   }
 }
+
+/**
+ * Recupera el pedido activo del cliente autenticado por su teléfono de perfil.
+ * Evita depender solo de localStorage en el navegador.
+ */
+export class GetMyActiveOrderUseCase {
+  constructor(
+    private orderRepo: IOrderRepository,
+    private userRepo: { findById(id: string): Promise<{ phone?: string | null } | null> },
+  ) {}
+
+  async execute(userId: string) {
+    const user = await this.userRepo.findById(userId);
+    if (!user?.phone?.trim()) return null;
+    return this.orderRepo.findLatestActiveByPhone(user.phone.trim());
+  }
+}

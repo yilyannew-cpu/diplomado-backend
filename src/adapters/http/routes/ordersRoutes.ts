@@ -15,6 +15,7 @@ import {
 import {
   createOrderController,
   trackOrderController,
+  myActiveOrderController,
   listRestaurantOrdersController,
   updateOrderStatusController,
   rejectPaymentController,
@@ -32,8 +33,10 @@ const authenticate = createAuthenticateMiddleware(container.tokenService);
 const adminOnly = [authenticate, authorize(Role.ADMIN, Role.SUPERADMIN)];
 const adminOrCourier = [authenticate, authorize(Role.ADMIN, Role.SUPERADMIN, Role.DOMICILIARIO)];
 const superadminOnly = [authenticate, authorize(Role.SUPERADMIN)];
+const clientOnly = [authenticate, authorize(Role.CLIENTE)];
 
 router.get('/', ...superadminOnly, validate(listOrdersQuerySchema, 'query'), listOrdersController);
+router.get('/my-active', ...clientOnly, myActiveOrderController);
 router.get('/track/:code', validate(orderTrackParamSchema, 'params'), trackOrderController);
 router.post('/', validate(createOrderSchema), createOrderController);
 
