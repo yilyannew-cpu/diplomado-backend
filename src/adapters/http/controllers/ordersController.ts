@@ -51,6 +51,24 @@ export async function trackOrderController(req: Request, res: Response, next: Ne
   }
 }
 
+export async function myActiveOrderController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: 'UNAUTHORIZED', message: 'No autenticado' });
+      return;
+    }
+    const order = await container.getMyActiveOrderUseCase.execute(userId);
+    if (!order) {
+      res.json(null);
+      return;
+    }
+    res.json(serializeOrder(order as any));
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function listRestaurantOrdersController(req: Request, res: Response, next: NextFunction) {
   try {
     const restaurantId = param(req, 'restaurantId');
