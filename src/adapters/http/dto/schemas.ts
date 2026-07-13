@@ -359,3 +359,11 @@ export const createReviewSchema = z.object({
   comment: z.string().max(500).optional(),
   customer_name: z.string().min(2).max(100),
 });
+
+export const submitDeliveryReviewSchema = z.object({
+  restaurant_rating: z.number().min(1).max(5),
+  restaurant_comment: z.string().max(500).optional().nullable(),
+  courier_rating: z.number().min(1).max(5).optional().nullable(),
+  courier_comment: z.string().max(500).optional().nullable(),
+  customer_name: z.string().min(2).max(100).optional().nullable(),
+});

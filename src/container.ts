@@ -67,6 +67,11 @@ import {
   UpdateOrderStatusSecureUseCase,
 } from './application/use-cases/orders/CourierDeliveryUseCases';
 import {
+  GetCourierRatingUseCase,
+  GetDeliveryReviewStatusUseCase,
+  SubmitDeliveryReviewUseCase,
+} from './application/use-cases/orders/DeliveryReviewUseCases';
+import {
   ListPromotionsUseCase,
   ListActivePromotionsUseCase,
   GetPromotionUseCase,
@@ -178,6 +183,9 @@ export const container = {
     userRepository,
   ),
   updateOrderStatusSecureUseCase: new UpdateOrderStatusSecureUseCase(orderRepository),
+  getDeliveryReviewStatusUseCase: new GetDeliveryReviewStatusUseCase(orderRepository),
+  submitDeliveryReviewUseCase: new SubmitDeliveryReviewUseCase(orderRepository),
+  getCourierRatingUseCase: new GetCourierRatingUseCase(),
 
   listPromotionsUseCase: new ListPromotionsUseCase(promotionRepository),
   listActivePromotionsUseCase: new ListActivePromotionsUseCase(promotionRepository),

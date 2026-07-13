@@ -12,6 +12,7 @@ import {
   createOrderSchema,
   orderTrackParamSchema,
   idParamSchema,
+  submitDeliveryReviewSchema,
 } from '../dto/schemas';
 import {
   createOrderController,
@@ -29,6 +30,9 @@ import {
   acceptDeliveryController,
   startDeliveryController,
   completeDeliveryController,
+  getDeliveryReviewStatusController,
+  submitDeliveryReviewController,
+  getMyCourierRatingController,
 } from '../controllers/ordersController';
 import { listOrdersController } from '../controllers/operationsController';
 import { Role } from '../../../domain/enums';
@@ -61,12 +65,26 @@ router.get('/delivery/available', ...adminOrCourier, listAvailableDeliveriesCont
 
 /** Pedidos del domiciliario autenticado. */
 router.get('/courier/me', ...courierOnly, listMyCourierOrdersController);
+router.get('/courier/me/rating', ...courierOnly, getMyCourierRatingController);
 router.get('/courier/:courierId', ...adminOrCourier, listCourierOrdersController);
 
 /** Flujo operativo del domiciliario. */
 router.post('/:id/accept', ...courierOnly, validate(idParamSchema, 'params'), acceptDeliveryController);
 router.post('/:id/start-delivery', ...courierOnly, validate(idParamSchema, 'params'), startDeliveryController);
 router.post('/:id/complete', ...courierOnly, validate(idParamSchema, 'params'), completeDeliveryController);
+
+/** Reseñas post-entrega (cliente): restaurante + domiciliario. */
+router.get(
+  '/:id/review-status',
+  validate(idParamSchema, 'params'),
+  getDeliveryReviewStatusController,
+);
+router.post(
+  '/:id/reviews',
+  validate(idParamSchema, 'params'),
+  validate(submitDeliveryReviewSchema),
+  submitDeliveryReviewController,
+);
 
 router.patch(
   '/:id/status',

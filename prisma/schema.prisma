@@ -67,6 +67,7 @@ model User {
   restaurant    Restaurant? @relation(fields: [restaurant_id], references: [id])
   orders        Order[]    @relation("CourierOrders")
   dispatches    Dispatch[] @relation("DispatchCourier")
+  delivery_reviews DeliveryReview[] @relation("CourierDeliveryReviews")
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
 
@@ -100,6 +101,7 @@ model Restaurant {
   categories       Category[]
   promotions       Promotion[]
   reviews          Review[]
+  delivery_reviews DeliveryReview[]
   dispatches       Dispatch[]
   created_at       DateTime         @default(now())
   updated_at       DateTime         @updatedAt
@@ -162,6 +164,7 @@ model Order {
   delivery_person_id String?
   items              OrderItem[]
   dispatch           Dispatch?
+  delivery_review    DeliveryReview?
   created_at         DateTime    @default(now())
   updated_at         DateTime    @updatedAt
 
@@ -271,6 +274,27 @@ model Review {
   created_at    DateTime   @default(now())
 
   @@map("reviews")
+}
+
+/** Reseña post-entrega: restaurante + domiciliario en un solo registro por pedido. */
+model DeliveryReview {
+  id                  String     @id @default(uuid())
+  order_id            String     @unique
+  order               Order      @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  restaurant_id       String
+  restaurant          Restaurant @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
+  courier_id          String?
+  courier             User?      @relation("CourierDeliveryReviews", fields: [courier_id], references: [id], onDelete: SetNull)
+  customer_name       String
+  restaurant_rating   Float
+  restaurant_comment  String?
+  courier_rating      Float?
+  courier_comment     String?
+  created_at          DateTime   @default(now())
+
+  @@index([restaurant_id])
+  @@index([courier_id])
+  @@map("delivery_reviews")
 }
 
 model Dispatch {

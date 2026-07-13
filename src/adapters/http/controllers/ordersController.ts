@@ -262,3 +262,44 @@ export async function completeDeliveryController(req: Request, res: Response, ne
     next(error);
   }
 }
+
+export async function getDeliveryReviewStatusController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const status = await container.getDeliveryReviewStatusUseCase.execute(param(req, 'id'));
+    res.json(status);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function submitDeliveryReviewController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await container.submitDeliveryReviewUseCase.execute(param(req, 'id'), {
+      restaurantRating: Number(req.body.restaurant_rating),
+      restaurantComment: req.body.restaurant_comment,
+      courierRating:
+        req.body.courier_rating === undefined || req.body.courier_rating === null
+          ? null
+          : Number(req.body.courier_rating),
+      courierComment: req.body.courier_comment,
+      customerName: req.body.customer_name ?? req.user?.name ?? null,
+    });
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getMyCourierRatingController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const courierId = req.user?.id;
+    if (!courierId) {
+      res.status(401).json({ error: 'UNAUTHORIZED', message: 'No autenticado' });
+      return;
+    }
+    const rating = await container.getCourierRatingUseCase.execute(courierId);
+    res.json(rating);
+  } catch (error) {
+    next(error);
+  }
+}
