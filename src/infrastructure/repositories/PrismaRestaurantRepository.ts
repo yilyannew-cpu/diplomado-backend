@@ -73,6 +73,7 @@ export class PrismaRestaurantRepository implements IRestaurantRepository {
         ...(data.dailyGoal !== undefined && { daily_goal: data.dailyGoal }),
         ...(data.accent !== undefined && { accent: data.accent }),
         ...(data.logo !== undefined && { logo: data.logo }),
+        ...(data.coverImage !== undefined && { cover_image: data.coverImage }),
       },
     });
     return mapRestaurant(record);

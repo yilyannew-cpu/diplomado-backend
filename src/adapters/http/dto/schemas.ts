@@ -174,6 +174,7 @@ export const updateRestaurantSchema = z.object({
   daily_goal: z.union([z.number().int().min(0), z.null()]).optional(),
   accent: z.string().max(20).optional(),
   logo: imageUrlSchema.nullable().optional(),
+  cover_image: imageUrlSchema.nullable().optional(),
 });
 
 export const createCategorySchema = z.object({
@@ -310,6 +311,7 @@ export const dispatchQuerySchema = z.object({
 
 export const couriersAvailableQuerySchema = z.object({
   batch_size: z.coerce.number().int().min(1).max(10).optional(),
+  zone: z.string().max(100).optional(),
 });
 
 const orderCustomizationSchema = z

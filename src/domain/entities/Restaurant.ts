@@ -13,6 +13,7 @@ export interface Restaurant {
   accent: string;
   initials: string;
   logo?: string | null;
+  coverImage?: string | null;
   status: RestaurantStatus;
   
   // Payment config
