@@ -22,6 +22,7 @@ export interface UpdateUserData {
   vehicle?: string | null;
   documentId?: string | null;
   comuna?: string | null;
+  avatar?: string | null;
   role?: Role;
   status?: UserStatus;
   restaurantId?: string | null;

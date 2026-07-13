@@ -54,6 +54,7 @@ export class PrismaUserRepository implements IUserRepository {
         ...(data.vehicle !== undefined && { vehicle: data.vehicle }),
         ...(data.documentId !== undefined && { document_id: data.documentId }),
         ...(data.comuna !== undefined && { comuna: data.comuna }),
+        ...(data.avatar !== undefined && { avatar: data.avatar }),
         ...(data.role !== undefined && { role: roleToPrisma[data.role] }),
         ...(data.status !== undefined && { status: statusToPrisma[data.status] }),
         ...(data.restaurantId !== undefined && { restaurant_id: data.restaurantId }),

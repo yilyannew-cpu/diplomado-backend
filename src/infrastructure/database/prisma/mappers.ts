@@ -205,7 +205,7 @@ export function mapOrderItem(record: PrismaOrderItem): OrderItem {
 export function mapOrder(
   record: PrismaOrder & {
     items: PrismaOrderItem[];
-    delivery_person?: { id: string; name: string; phone: string | null } | null;
+    delivery_person?: { id: string; name: string; phone: string | null; avatar?: string | null } | null;
   },
 ): Order {
   return {
@@ -227,6 +227,7 @@ export function mapOrder(
     deliveryPersonId: record.delivery_person_id,
     courierName: record.delivery_person?.name ?? null,
     courierPhone: record.delivery_person?.phone ?? null,
+    courierAvatar: record.delivery_person?.avatar ?? null,
     items: record.items.map(mapOrderItem),
     createdAt: record.created_at,
     updatedAt: record.updated_at,

@@ -30,6 +30,8 @@ export interface Order {
   courierName?: string | null;
   /** Teléfono del domiciliario asignado. */
   courierPhone?: string | null;
+  /** Foto de perfil del domiciliario (si se cargó la relación). */
+  courierAvatar?: string | null;
   items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;

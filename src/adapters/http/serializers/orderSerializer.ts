@@ -83,6 +83,7 @@ export function serializeOrder(order: OrderWithExtras) {
     courier_id: order.deliveryPersonId,
     courier_name: order.courierName ?? null,
     courier_phone: order.courierPhone ?? null,
+    courier_avatar: order.courierAvatar ?? null,
     items: order.items.map(serializeOrderItem),
     received_at: order.createdAt.toISOString(),
     status_entered_at: order.statusEnteredAt.toISOString(),
