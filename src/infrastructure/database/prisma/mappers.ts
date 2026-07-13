@@ -201,7 +201,12 @@ export function mapOrderItem(record: PrismaOrderItem): OrderItem {
 }
 
 
-export function mapOrder(record: PrismaOrder & { items: PrismaOrderItem[] }): Order {
+export function mapOrder(
+  record: PrismaOrder & {
+    items: PrismaOrderItem[];
+    delivery_person?: { id: string; name: string; phone: string | null } | null;
+  },
+): Order {
   return {
     id: record.id,
     code: record.code,
@@ -219,6 +224,8 @@ export function mapOrder(record: PrismaOrder & { items: PrismaOrderItem[] }): Or
     deliveryFee: record.delivery_fee,
     restaurantId: record.restaurant_id,
     deliveryPersonId: record.delivery_person_id,
+    courierName: record.delivery_person?.name ?? null,
+    courierPhone: record.delivery_person?.phone ?? null,
     items: record.items.map(mapOrderItem),
     createdAt: record.created_at,
     updatedAt: record.updated_at,

@@ -7,10 +7,11 @@ import {
 import { prisma } from '../database/prisma/client';
 import { mapOrder, orderStatusToPrisma } from '../database/prisma/mappers';
 import { OrderStatus } from '../../domain/enums';
-import { NotFoundError } from '../../domain/errors';
+import { NotFoundError, DomainError, ForbiddenError } from '../../domain/errors';
 
 const orderInclude = {
   items: { include: { product: { select: { name: true } } } },
+  delivery_person: { select: { id: true, name: true, phone: true } },
 };
 
 export class PrismaOrderRepository implements IOrderRepository {
@@ -227,7 +228,10 @@ export class PrismaOrderRepository implements IOrderRepository {
   }
 
   async listAvailableForDelivery(restaurantId?: string) {
-    const where: Record<string, unknown> = { status: 'Listo' };
+    const where: Record<string, unknown> = {
+      status: 'Listo',
+      delivery_person_id: null,
+    };
     if (restaurantId) where.restaurant_id = restaurantId;
 
     const records = await prisma.order.findMany({
@@ -245,6 +249,77 @@ export class PrismaOrderRepository implements IOrderRepository {
       orderBy: { created_at: 'desc' },
     });
     return records.map((r) => mapOrder(r as any));
+  }
+
+  async countInRouteByCourier(courierId: string) {
+    return prisma.order.count({
+      where: {
+        delivery_person_id: courierId,
+        status: { in: ['EnCamino', 'Listo'] },
+      },
+    });
+  }
+
+  async startDeliveryByCourier(orderId: string, courierId: string) {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: orderInclude,
+    });
+    if (!order) throw new NotFoundError('Pedido no encontrado');
+    if (order.status !== 'Listo') {
+      throw new DomainError('INVALID_ORDER_STATUS', 'El pedido no está listo para salir');
+    }
+    if (order.delivery_person_id !== courierId) {
+      throw new ForbiddenError('FORBIDDEN_ORDER', 'Este pedido no está asignado a ti');
+    }
+
+    const now = new Date();
+    await prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'EnCamino', status_entered_at: now },
+      });
+      await tx.dispatch.upsert({
+        where: { order_id: orderId },
+        create: {
+          order_id: orderId,
+          courier_id: courierId,
+          restaurant_id: order.restaurant_id,
+          dispatched_at: now,
+        },
+        update: { dispatched_at: now },
+      });
+    });
+
+    const updated = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: orderInclude,
+    });
+    return mapOrder(updated as any);
+  }
+
+  async completeDeliveryByCourier(orderId: string, courierId: string) {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: orderInclude,
+    });
+    if (!order) throw new NotFoundError('Pedido no encontrado');
+    if (order.status !== 'EnCamino') {
+      throw new DomainError('INVALID_ORDER_STATUS', 'El pedido no está en camino');
+    }
+    if (order.delivery_person_id !== courierId) {
+      throw new ForbiddenError('FORBIDDEN_ORDER', 'Este pedido no está asignado a ti');
+    }
+
+    const record = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: 'Entregado',
+        status_entered_at: new Date(),
+      },
+      include: orderInclude,
+    });
+    return mapOrder(record as any);
   }
 
   async countAll() {

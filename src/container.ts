@@ -59,6 +59,14 @@ import {
   GetMyActiveOrderUseCase,
 } from './application/use-cases/orders/OrderUseCases';
 import {
+  AcceptDeliveryUseCase,
+  StartDeliveryUseCase,
+  CompleteDeliveryUseCase,
+  ListMyCourierOrdersUseCase,
+  ListCourierAvailableDeliveriesUseCase,
+  UpdateOrderStatusSecureUseCase,
+} from './application/use-cases/orders/CourierDeliveryUseCases';
+import {
   ListPromotionsUseCase,
   ListActivePromotionsUseCase,
   GetPromotionUseCase,
@@ -161,6 +169,15 @@ export const container = {
   listCourierOrdersUseCase: new ListCourierOrdersUseCase(orderRepository),
   getOrderByCodeUseCase: new GetOrderByCodeUseCase(orderRepository),
   getMyActiveOrderUseCase: new GetMyActiveOrderUseCase(orderRepository, userRepository),
+  acceptDeliveryUseCase: new AcceptDeliveryUseCase(orderRepository, userRepository),
+  startDeliveryUseCase: new StartDeliveryUseCase(orderRepository),
+  completeDeliveryUseCase: new CompleteDeliveryUseCase(orderRepository),
+  listMyCourierOrdersUseCase: new ListMyCourierOrdersUseCase(orderRepository),
+  listCourierAvailableDeliveriesUseCase: new ListCourierAvailableDeliveriesUseCase(
+    orderRepository,
+    userRepository,
+  ),
+  updateOrderStatusSecureUseCase: new UpdateOrderStatusSecureUseCase(orderRepository),
 
   listPromotionsUseCase: new ListPromotionsUseCase(promotionRepository),
   listActivePromotionsUseCase: new ListActivePromotionsUseCase(promotionRepository),

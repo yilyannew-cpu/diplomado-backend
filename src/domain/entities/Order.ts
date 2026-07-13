@@ -26,6 +26,10 @@ export interface Order {
   deliveryFee: number;
   restaurantId: string;
   deliveryPersonId: string | null;
+  /** Nombre del domiciliario asignado (si se cargó la relación). */
+  courierName?: string | null;
+  /** Teléfono del domiciliario asignado. */
+  courierPhone?: string | null;
   items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;
