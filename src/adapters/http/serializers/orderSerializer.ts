@@ -77,6 +77,8 @@ export function serializeOrder(order: OrderWithExtras) {
     total: order.total,
     delivery_fee: order.deliveryFee,
     courier_id: order.deliveryPersonId,
+    courier_name: order.courierName ?? null,
+    courier_phone: order.courierPhone ?? null,
     items: order.items.map(serializeOrderItem),
     received_at: order.createdAt.toISOString(),
     status_entered_at: order.statusEnteredAt.toISOString(),

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 import { container } from '../../../container';
-import { OrderStatus } from '../../../domain/enums';
+import { OrderStatus, Role } from '../../../domain/enums';
 import { param } from '../utils/routeParams';
 import { serializeOrders, serializeOrder, parseStatusFilter } from '../serializers/orderSerializer';
 import { Order } from '../../../domain/entities/Order';
@@ -82,10 +82,17 @@ export async function listRestaurantOrdersController(req: Request, res: Response
 
 export async function updateOrderStatusController(req: Request, res: Response, next: NextFunction) {
   try {
-    const order = await container.updateOrderStatusUseCase.execute(
-      param(req, 'id'),
-      req.body.status as OrderStatus
-    );
+    const actor = req.user;
+    if (!actor) {
+      res.status(401).json({ error: 'UNAUTHORIZED', message: 'No autenticado' });
+      return;
+    }
+    const order = await container.updateOrderStatusSecureUseCase.execute({
+      orderId: param(req, 'id'),
+      status: req.body.status as OrderStatus,
+      actorId: actor.id,
+      actorRole: actor.role,
+    });
     const io = req.app.get('io') as SocketIOServer;
     const serialized = serializeOrders([order as any])[0];
     emitOrderEvent(io, order, 'order_status_changed', serialized);
@@ -162,7 +169,25 @@ export async function batchDispatchOrdersController(req: Request, res: Response,
 export async function listAvailableDeliveriesController(req: Request, res: Response, next: NextFunction) {
   try {
     const restaurantId = req.query.restaurantId as string | undefined;
-    const orders = await container.listAvailableDeliveriesUseCase.execute(restaurantId);
+    const actor = req.user;
+    const orders =
+      actor?.role === Role.DOMICILIARIO
+        ? await container.listCourierAvailableDeliveriesUseCase.execute(actor.id, restaurantId)
+        : await container.listAvailableDeliveriesUseCase.execute(restaurantId);
+    res.json(serializeOrders(orders as any));
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listMyCourierOrdersController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const courierId = req.user?.id;
+    if (!courierId) {
+      res.status(401).json({ error: 'UNAUTHORIZED', message: 'No autenticado' });
+      return;
+    }
+    const orders = await container.listMyCourierOrdersUseCase.execute(courierId);
     res.json(serializeOrders(orders as any));
   } catch (error) {
     next(error);
@@ -171,8 +196,68 @@ export async function listAvailableDeliveriesController(req: Request, res: Respo
 
 export async function listCourierOrdersController(req: Request, res: Response, next: NextFunction) {
   try {
-    const orders = await container.listCourierOrdersUseCase.execute(param(req, 'courierId'));
+    const courierId = param(req, 'courierId');
+    const actor = req.user;
+    if (actor?.role === Role.DOMICILIARIO && actor.id !== courierId) {
+      res.status(403).json({
+        error: 'FORBIDDEN',
+        message: 'Solo puedes consultar tus propios pedidos',
+      });
+      return;
+    }
+    const orders = await container.listCourierOrdersUseCase.execute(courierId);
     res.json(serializeOrders(orders as any));
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function acceptDeliveryController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const courierId = req.user?.id;
+    if (!courierId) {
+      res.status(401).json({ error: 'UNAUTHORIZED', message: 'No autenticado' });
+      return;
+    }
+    const order = await container.acceptDeliveryUseCase.execute(param(req, 'id'), courierId);
+    const io = req.app.get('io') as SocketIOServer;
+    const serialized = serializeOrder(order as any);
+    emitOrderEvent(io, order, 'order_status_changed', serialized);
+    res.json(serialized);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function startDeliveryController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const courierId = req.user?.id;
+    if (!courierId) {
+      res.status(401).json({ error: 'UNAUTHORIZED', message: 'No autenticado' });
+      return;
+    }
+    const order = await container.startDeliveryUseCase.execute(param(req, 'id'), courierId);
+    const io = req.app.get('io') as SocketIOServer;
+    const serialized = serializeOrder(order as any);
+    emitOrderEvent(io, order, 'order_status_changed', serialized);
+    res.json(serialized);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function completeDeliveryController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const courierId = req.user?.id;
+    if (!courierId) {
+      res.status(401).json({ error: 'UNAUTHORIZED', message: 'No autenticado' });
+      return;
+    }
+    const order = await container.completeDeliveryUseCase.execute(param(req, 'id'), courierId);
+    const io = req.app.get('io') as SocketIOServer;
+    const serialized = serializeOrder(order as any);
+    emitOrderEvent(io, order, 'order_status_changed', serialized);
+    res.json(serialized);
   } catch (error) {
     next(error);
   }
