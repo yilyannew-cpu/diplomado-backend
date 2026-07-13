@@ -11,7 +11,7 @@ import { NotFoundError, DomainError, ForbiddenError } from '../../domain/errors'
 
 const orderInclude = {
   items: { include: { product: { select: { name: true, image: true } } } },
-  delivery_person: { select: { id: true, name: true, phone: true } },
+  delivery_person: { select: { id: true, name: true, phone: true, avatar: true } },
 };
 
 type OrderRecordWithIncludes = {

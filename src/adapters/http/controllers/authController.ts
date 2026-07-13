@@ -38,6 +38,23 @@ export async function updateProfileController(req: Request, res: Response, next:
       email: req.body.email,
       phone: req.body.phone,
       comuna: req.body.comuna,
+      avatar: req.body.avatar,
+    });
+    res.json({ user: serializeUserPublic(user) });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function uploadAvatarController(req: Request, res: Response, next: NextFunction) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Archivo requerido' });
+    }
+    const { filePathToDataUrl } = await import('../../../infrastructure/services/UploadService');
+    const avatar = filePathToDataUrl(req.file.path, req.file.mimetype);
+    const user = await container.updateProfileUseCase.execute(req.user!.id, req.user!.role, {
+      avatar,
     });
     res.json({ user: serializeUserPublic(user) });
   } catch (error) {

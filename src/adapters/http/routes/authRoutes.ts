@@ -15,13 +15,21 @@ import {
   getMeController,
   logoutController,
   updateProfileController,
+  uploadAvatarController,
   changePasswordController,
   registerClientController,
   registerRestaurantController,
   registerCourierController,
 } from '../controllers/authController';
+import { uploadImage } from '../../../infrastructure/services/UploadService';
+import { Role } from '../../../domain/enums';
 
 const authenticate = createAuthenticateMiddleware(container.tokenService);
+const avatarUpload = [
+  authenticate,
+  authorize(Role.DOMICILIARIO, Role.CLIENTE),
+  uploadImage.single('file'),
+];
 
 export const authRouter = Router();
 
@@ -31,5 +39,6 @@ authRouter.post('/register/restaurant', validate(registerRestaurantSchema), regi
 authRouter.post('/register/courier', validate(registerCourierSchema), registerCourierController);
 authRouter.get('/me', authenticate, getMeController);
 authRouter.patch('/me', authenticate, validate(updateProfileSchema), updateProfileController);
+authRouter.post('/me/avatar', ...avatarUpload, uploadAvatarController);
 authRouter.patch('/me/password', authenticate, validate(changePasswordSchema), changePasswordController);
 authRouter.post('/logout', authenticate, logoutController);
