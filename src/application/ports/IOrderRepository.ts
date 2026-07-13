@@ -16,6 +16,8 @@ export interface CreateOrderData {
   paymentMethod?: string;
   paymentStatus?: string;
   restaurantId: string;
+  /** Tarifa de domicilio calculada por km de ruta (COP). */
+  deliveryFee?: number;
   items: CreateOrderItemData[];
 }
 
