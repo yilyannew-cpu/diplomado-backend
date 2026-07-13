@@ -34,6 +34,8 @@ export interface IOrderRepository {
   create(data: CreateOrderData & { code: string; total: number; deliveryFee: number; itemsWithPrice: { productId: string; quantity: number; unitPrice: number; customizations?: Record<string, unknown> }[] }): Promise<Order>;
   findById(id: string): Promise<Order | null>;
   findByCode(code: string): Promise<Order | null>;
+  /** Pedido activo más reciente cuyo teléfono coincide (dígitos). */
+  findLatestActiveByPhone(phone: string): Promise<Order | null>;
   listByRestaurant(filters: ListRestaurantOrdersFilters): Promise<OrderWithProductNames[]>;
   updateStatus(id: string, status: OrderStatus): Promise<Order>;
   rejectPayment(id: string, observation: string): Promise<Order>;
