@@ -25,6 +25,7 @@ import {
   getRestaurantController,
   updateRestaurantController,
   uploadRestaurantLogoController,
+  uploadRestaurantCoverController,
   getDashboardController,
   listReviewsController,
   createReviewController,
@@ -82,6 +83,12 @@ router.post(
   ...adminRestaurant,
   uploadImage.single('file'),
   uploadRestaurantLogoController
+);
+router.post(
+  '/:restaurantId/cover',
+  ...adminRestaurant,
+  uploadImage.single('file'),
+  uploadRestaurantCoverController
 );
 
 router.get('/:restaurantId/dashboard', ...adminRestaurant, getDashboardController);
