@@ -42,7 +42,14 @@ export interface IOrderRepository {
   assignCourier(id: string, courierId: string): Promise<Order>;
   dispatchOrders(orderIds: string[], restaurantId: string): Promise<Order[]>;
   batchAssignCourier(orderIds: string[], courierId: string): Promise<Order[]>;
+  /** Pedidos Listo sin domiciliario (cola para aceptar). */
   listAvailableForDelivery(restaurantId?: string): Promise<Order[]>;
   listByCourier(courierId: string): Promise<Order[]>;
+  /** Cuenta pedidos EnCamino del courier (capacidad). */
+  countInRouteByCourier(courierId: string): Promise<number>;
+  /** Listo + asignado a courier → EnCamino + Dispatch. */
+  startDeliveryByCourier(orderId: string, courierId: string): Promise<Order>;
+  /** EnCamino + asignado a courier → Entregado. */
+  completeDeliveryByCourier(orderId: string, courierId: string): Promise<Order>;
   countAll(): Promise<number>;
 }

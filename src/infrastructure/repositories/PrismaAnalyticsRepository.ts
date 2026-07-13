@@ -1,5 +1,6 @@
 import { IAnalyticsRepository, ActiveDeliveryGroup } from '../../application/ports/IAnalyticsRepository';
 import { prisma } from '../database/prisma/client';
+import { MAX_ORDERS_PER_COURIER } from '../../shared/courierLimits';
 
 const APP_COMMISSION_RATE = 0.05;
 
@@ -443,21 +444,23 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
   }
 
   async listAvailableCouriers(restaurantId: string, batchSize: number) {
+    // Mismo criterio que superadmin (Seguimiento logístico): todos los domiciliarios Activos.
+    // El registro público no liga sede; filtrar solo por restaurant_id dejaba el modal vacío
+    // aunque el courier sí apareciera en operaciones.
     const couriers = await prisma.user.findMany({
       where: {
         role: 'domiciliario',
         status: 'Activo',
-        restaurant_id: restaurantId,
       },
-      select: { id: true, name: true, vehicle: true },
+      select: { id: true, name: true, vehicle: true, restaurant_id: true },
+      orderBy: { name: 'asc' },
     });
 
     const activeCounts = await prisma.order.groupBy({
       by: ['delivery_person_id'],
       where: {
-        restaurant_id: restaurantId,
-        status: 'EnCamino',
-        delivery_person_id: { not: null },
+        status: { in: ['EnCamino', 'Listo'] },
+        delivery_person_id: { in: couriers.length ? couriers.map((c) => c.id) : ['__none__'] },
       },
       _count: true,
     });
@@ -466,16 +469,23 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
       activeCounts.map((c) => [c.delivery_person_id!, c._count])
     );
 
-    return couriers.map((c) => {
+    const ranked = couriers.map((c) => {
       const activeOrders = countMap.get(c.id) ?? 0;
+      const sedeRank =
+        c.restaurant_id === restaurantId ? 0 : c.restaurant_id == null ? 1 : 2;
       return {
         id: c.id,
         name: c.name,
         vehicle: c.vehicle,
         averageRating: 4.8,
         activeOrders,
-        canTakeBatch: activeOrders + batchSize <= 5,
+        canTakeBatch: activeOrders + batchSize <= MAX_ORDERS_PER_COURIER,
+        sedeRank,
       };
     });
+
+    ranked.sort((a, b) => a.sedeRank - b.sedeRank || a.name.localeCompare(b.name, 'es'));
+
+    return ranked.map(({ sedeRank: _sedeRank, ...courier }) => courier);
   }
 }
