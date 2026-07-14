@@ -50,6 +50,12 @@ enum PaymentMethod {
   Online
 }
 
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id            String     @id @default(uuid())
   name          String
@@ -68,6 +74,7 @@ model User {
   orders        Order[]    @relation("CourierOrders")
   dispatches    Dispatch[] @relation("DispatchCourier")
   delivery_reviews DeliveryReview[] @relation("CourierDeliveryReviews")
+  courier_applications CourierApplication[] @relation("CourierApplications")
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
 
@@ -104,6 +111,7 @@ model Restaurant {
   reviews          Review[]
   delivery_reviews DeliveryReview[]
   dispatches       Dispatch[]
+  courier_applications CourierApplication[]
   created_at       DateTime         @default(now())
   updated_at       DateTime         @updatedAt
 
@@ -311,4 +319,17 @@ model Dispatch {
   @@map("dispatches")
 }
 
+model CourierApplication {
+  id            String            @id @default(uuid())
+  courier_id    String
+  courier       User              @relation("CourierApplications", fields: [courier_id], references: [id])
+  restaurant_id String
+  restaurant    Restaurant        @relation(fields: [restaurant_id], references: [id])
+  status        ApplicationStatus @default(PENDING)
+  created_at    DateTime          @default(now())
+  updated_at    DateTime          @updatedAt
+
+  @@unique([courier_id, restaurant_id])
+  @@map("courier_applications")
+}
 
