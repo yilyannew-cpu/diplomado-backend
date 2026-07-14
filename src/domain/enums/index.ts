@@ -45,3 +45,9 @@ export enum ServiceHealthStatus {
   DEGRADED = 'degraded',
   DOWN = 'down',
 }
+
+export enum ApplicationStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+}

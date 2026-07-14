@@ -11,6 +11,7 @@ import { categoriesRouter } from './routes/categoriesRoutes';
 import { promotionsRouter } from './routes/promotionsRoutes';
 import { uploadsRouter } from './routes/uploadsRoutes';
 import { couriersRouter } from './routes/couriersRoutes';
+import { courierApplicationsRouter } from './routes/courierApplicationsRoutes';
 import { reportsRouter } from './routes/reportsRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import { UPLOAD_DIR } from '../../infrastructure/services/UploadService';
@@ -64,6 +65,7 @@ export function createApp() {
   app.use('/api/v1/metrics', metricsRouter);
   app.use('/api/v1/system', systemRouter);
   app.use('/api/v1/couriers', couriersRouter);
+  app.use('/api/v1/courier-applications', courierApplicationsRouter);
   app.use('/api/v1/restaurants', restaurantsRouter);
   app.use('/api/v1/categories', categoriesRouter);
   app.use('/api/v1/promotions', promotionsRouter);

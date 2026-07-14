@@ -7,6 +7,7 @@ import { PrismaPromotionRepository } from './infrastructure/repositories/PrismaP
 import { PrismaAnalyticsRepository } from './infrastructure/repositories/PrismaAnalyticsRepository';
 import { PrismaOperationsRepository } from './infrastructure/repositories/PrismaOperationsRepository';
 import { PrismaUserReportRepository } from './infrastructure/repositories/PrismaUserReportRepository';
+import { PrismaCourierApplicationRepository } from './infrastructure/repositories/PrismaCourierApplicationRepository';
 import { BcryptHashService } from './infrastructure/services/BcryptHashService';
 import { JwtTokenService } from './infrastructure/services/JwtTokenService';
 import { LoginUseCase } from './application/use-cases/auth/LoginUseCase';
@@ -102,6 +103,11 @@ import {
 import { RejectPaymentUseCase } from './application/use-cases/orders/RejectPaymentUseCase';
 import { CreateUserReportUseCase } from './application/use-cases/reports/CreateUserReportUseCase';
 import { ListUserReportsUseCase } from './application/use-cases/reports/ListUserReportsUseCase';
+import {
+  ApplyToRestaurantUseCase,
+  ReviewApplicationUseCase,
+  ListApplicationsUseCase,
+} from './application/use-cases/courier-applications/CourierApplicationUseCases';
 
 const userRepository = new PrismaUserRepository();
 const restaurantRepository = new PrismaRestaurantRepository();
@@ -112,6 +118,7 @@ const promotionRepository = new PrismaPromotionRepository();
 const analyticsRepository = new PrismaAnalyticsRepository();
 const operationsRepository = new PrismaOperationsRepository();
 const userReportRepository = new PrismaUserReportRepository();
+const courierApplicationRepository = new PrismaCourierApplicationRepository();
 const hashService = new BcryptHashService();
 const tokenService = new JwtTokenService();
 
@@ -218,4 +225,10 @@ export const container = {
   
   // Payment
   rejectPaymentUseCase: new RejectPaymentUseCase(orderRepository),
+
+  // Courier Applications
+  courierApplicationRepository,
+  applyToRestaurantUseCase: new ApplyToRestaurantUseCase(courierApplicationRepository),
+  reviewApplicationUseCase: new ReviewApplicationUseCase(courierApplicationRepository),
+  listApplicationsUseCase: new ListApplicationsUseCase(courierApplicationRepository),
 };
