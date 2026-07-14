@@ -22,6 +22,7 @@ export function serializeUser(user: PublicUser | ListedPublicUser) {
     comuna: user.comuna,
     restaurant_id: user.restaurantId,
     restaurant_name: listed.restaurantName ?? null,
+    restaurant_logo: listed.restaurantLogo ?? null,
     status: user.status,
     created_at: toIsoDate(user.createdAt),
     updated_at: toIsoDate(user.updatedAt),
@@ -38,7 +39,6 @@ export function serializeUserPublic(user: PublicUser) {
     phone: user.phone,
     avatar: user.avatar ?? null,
     status: user.status,
-    avatar: user.avatar ?? null,
   };
   if (user.restaurantId) base.restaurant_id = user.restaurantId;
   if (user.vehicle) base.vehicle = user.vehicle;

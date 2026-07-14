@@ -18,9 +18,21 @@ export async function listPendingController(_req: Request, res: Response, next: 
       email: user.email,
       role: user.role,
       phone: user.phone,
+      document_id: user.documentId,
+      vehicle: user.vehicle,
+      avatar: user.avatar,
       status: user.status,
       created_at: user.createdAt ? user.createdAt.toISOString() : null,
-      restaurant: user.restaurant ?? undefined,
+      restaurant: user.restaurant
+        ? {
+            id: user.restaurant.id,
+            name: user.restaurant.name,
+            city: user.restaurant.city,
+            address: user.restaurant.address,
+            status: user.restaurant.status,
+            logo: user.restaurant.logo ?? null,
+          }
+        : undefined,
     }));
     res.json({ data });
   } catch (error) {
