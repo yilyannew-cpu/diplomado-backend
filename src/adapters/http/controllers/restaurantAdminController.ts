@@ -188,6 +188,7 @@ export async function getCourierPayoutsController(req: Request, res: Response, n
       data: data.map((r) => ({
         courier_id: r.courierId,
         courier_name: r.courierName,
+        courier_avatar: r.courierAvatar,
         orders_delivered: r.ordersDelivered,
         total_payout: r.totalPayout,
       })),
@@ -219,6 +220,7 @@ export async function getActiveDeliveriesController(req: Request, res: Response,
       data: data.map((g) => ({
         courier_id: g.courierId,
         courier_name: g.courierName,
+        courier_avatar: g.courierAvatar,
         vehicle: g.vehicle,
         average_rating: g.averageRating,
         orders: g.orders.map((o) => ({
@@ -254,6 +256,7 @@ export async function listDispatchesController(req: Request, res: Response, next
         delivery_fee: d.deliveryFee,
         courier_id: d.courierId,
         courier_name: d.courierName,
+        courier_avatar: d.courierAvatar,
         dispatched_at: d.dispatchedAt.toISOString(),
       })),
     });
@@ -285,6 +288,7 @@ export async function listAvailableCouriersController(req: Request, res: Respons
       data: couriers.map((c) => ({
         id: c.id,
         name: c.name,
+        avatar: c.avatar,
         vehicle: c.vehicle,
         average_rating: c.averageRating,
         active_orders: c.activeOrders,
