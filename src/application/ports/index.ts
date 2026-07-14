@@ -1,6 +1,7 @@
 import { User, PublicUser } from '../../domain/entities/User';
 import { Restaurant } from '../../domain/entities/Restaurant';
-import { Role, UserStatus } from '../../domain/enums';
+import { CourierApplication } from '../../domain/entities/CourierApplication';
+import { Role, UserStatus, ApplicationStatus } from '../../domain/enums';
 
 export interface CreateUserData {
   name: string;
@@ -131,4 +132,13 @@ export interface CreateUserReportData {
 export interface IUserReportRepository {
   create(data: CreateUserReportData): Promise<UserReportData>;
   listAll(): Promise<UserReportData[]>;
+}
+
+export interface ICourierApplicationRepository {
+  create(courierId: string, restaurantId: string): Promise<CourierApplication>;
+  findById(id: string): Promise<CourierApplication | null>;
+  findExisting(courierId: string, restaurantId: string): Promise<CourierApplication | null>;
+  updateStatus(id: string, status: ApplicationStatus): Promise<CourierApplication>;
+  listByRestaurant(restaurantId: string): Promise<CourierApplication[]>;
+  listByCourier(courierId: string): Promise<CourierApplication[]>;
 }
