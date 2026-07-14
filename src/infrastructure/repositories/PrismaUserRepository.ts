@@ -82,6 +82,7 @@ export class PrismaUserRepository implements IUserRepository {
               city: record.restaurant.city,
               address: record.restaurant.address,
               status: record.restaurant.status,
+              logo: record.restaurant.logo ?? null,
             }
           : null,
       };
@@ -106,13 +107,14 @@ export class PrismaUserRepository implements IUserRepository {
 
     const records = await prisma.user.findMany({
       where,
-      include: { restaurant: { select: { name: true } } },
+      include: { restaurant: { select: { name: true, logo: true } } },
       orderBy: { created_at: 'desc' },
     });
 
     return records.map((r) => ({
       ...toPublicUser(mapUser(r)),
       restaurantName: r.restaurant?.name ?? null,
+      restaurantLogo: r.restaurant?.logo ?? null,
     }));
   }
 }

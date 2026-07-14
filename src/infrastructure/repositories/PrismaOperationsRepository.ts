@@ -154,7 +154,7 @@ export class PrismaOperationsRepository implements IOperationsRepository {
       where,
       include: {
         restaurant: { select: { name: true } },
-        delivery_person: { select: { name: true } },
+        delivery_person: { select: { name: true, avatar: true } },
       },
       orderBy: { created_at: 'desc' },
       take: 100,
@@ -167,6 +167,7 @@ export class PrismaOperationsRepository implements IOperationsRepository {
       restaurant_name: order.restaurant.name,
       customer_name: order.customer_name,
       courier_name: order.delivery_person?.name ?? null,
+      courier_avatar: order.delivery_person?.avatar ?? null,
       total_cop: order.total,
       created_at: order.created_at.toISOString(),
       estimated_delivery_at: null,
@@ -225,6 +226,7 @@ export class PrismaOperationsRepository implements IOperationsRepository {
         email: courier.email,
         phone: courier.phone,
         vehicle: courier.vehicle,
+        avatar: courier.avatar,
         availability,
         active_orders: active,
       };

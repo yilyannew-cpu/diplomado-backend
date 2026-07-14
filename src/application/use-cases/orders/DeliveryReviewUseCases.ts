@@ -33,6 +33,7 @@ export class GetDeliveryReviewStatusUseCase {
       restaurant_id: order.restaurantId,
       courier_id: order.deliveryPersonId,
       courier_name: order.courierName ?? null,
+      courier_avatar: order.courierAvatar ?? null,
     };
   }
 }

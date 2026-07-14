@@ -42,11 +42,13 @@ export interface PendingUserWithRestaurant extends PublicUser {
     city: string;
     address: string;
     status: string;
+    logo?: string | null;
   } | null;
 }
 
 export interface ListedPublicUser extends PublicUser {
   restaurantName?: string | null;
+  restaurantLogo?: string | null;
 }
 
 export interface IUserRepository {

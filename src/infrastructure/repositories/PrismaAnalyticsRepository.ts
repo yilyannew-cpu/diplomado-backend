@@ -247,14 +247,18 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
         updated_at: { gte: from, lte: to },
         delivery_person_id: { not: null },
       },
-      include: { delivery_person: { select: { id: true, name: true } } },
+      include: { delivery_person: { select: { id: true, name: true, avatar: true } } },
     });
 
-    const byCourier = new Map<string, { name: string; orders: number; payout: number }>();
+    const byCourier = new Map<
+      string,
+      { name: string; avatar: string | null; orders: number; payout: number }
+    >();
     for (const order of orders) {
       const courierId = order.delivery_person_id!;
       const existing = byCourier.get(courierId) ?? {
         name: order.delivery_person!.name,
+        avatar: order.delivery_person!.avatar,
         orders: 0,
         payout: 0,
       };
@@ -266,6 +270,7 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
     return Array.from(byCourier.entries()).map(([courierId, data]) => ({
       courierId,
       courierName: data.name,
+      courierAvatar: data.avatar,
       ordersDelivered: data.orders,
       totalPayout: data.payout,
     }));
@@ -342,13 +347,14 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
         status: 'EnCamino',
         delivery_person_id: { not: null },
       },
-      include: { delivery_person: { select: { id: true, name: true, vehicle: true } } },
+      include: { delivery_person: { select: { id: true, name: true, vehicle: true, avatar: true } } },
       orderBy: { updated_at: 'desc' },
     });
 
     const groups = new Map<string, {
       courierId: string;
       courierName: string;
+      courierAvatar: string | null;
       vehicle: string | null;
       orders: ActiveDeliveryGroup['orders'];
       totalDeliveryPay: number;
@@ -360,6 +366,7 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
       const existing = groups.get(courierId) ?? {
         courierId,
         courierName: order.delivery_person!.name,
+        courierAvatar: order.delivery_person!.avatar,
         vehicle: order.delivery_person!.vehicle,
         orders: [],
         totalDeliveryPay: 0,
@@ -381,6 +388,7 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
     return Array.from(groups.values()).map((g) => ({
       courierId: g.courierId,
       courierName: g.courierName,
+      courierAvatar: g.courierAvatar,
       vehicle: g.vehicle,
       averageRating: 4.8,
       orders: g.orders,
@@ -397,7 +405,7 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
       },
       include: {
         order: true,
-        courier: { select: { id: true, name: true } },
+        courier: { select: { id: true, name: true, avatar: true } },
       },
       orderBy: { dispatched_at: 'desc' },
     });
@@ -409,6 +417,7 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
       deliveryFee: d.order.delivery_fee,
       courierId: d.courier.id,
       courierName: d.courier.name,
+      courierAvatar: d.courier.avatar,
       dispatchedAt: d.dispatched_at,
     }));
   }
@@ -450,7 +459,7 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
         role: 'domiciliario',
         status: 'Activo',
       },
-      select: { id: true, name: true, vehicle: true, restaurant_id: true },
+      select: { id: true, name: true, vehicle: true, avatar: true, restaurant_id: true },
       orderBy: { name: 'asc' },
     });
 
@@ -496,6 +505,7 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
       return {
         id: c.id,
         name: c.name,
+        avatar: c.avatar,
         vehicle: c.vehicle,
         averageRating: 4.8,
         activeOrders: assigned.length,

@@ -24,7 +24,7 @@ export class UpdateProfileUseCase {
     // Avatar de perfil: permitido para domiciliario (y cliente); admin no cambia identidad de restaurante aquí.
     if (role === Role.ADMIN && input.avatar !== undefined) {
       throw new ForbiddenError(
-        'PROFILE_UPDATE_FORBIDDEN',
+        'PROFILE_AVATAR_FORBIDDEN',
         'Los administradores de restaurante no actualizan avatar de perfil aquí'
       );
     }
