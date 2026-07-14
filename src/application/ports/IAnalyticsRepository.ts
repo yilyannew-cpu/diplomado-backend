@@ -48,6 +48,7 @@ export interface MonthlySalesPoint {
 export interface CourierPayoutRow {
   courierId: string;
   courierName: string;
+  courierAvatar: string | null;
   ordersDelivered: number;
   totalPayout: number;
 }
@@ -63,6 +64,7 @@ export interface ReviewItem {
 export interface ActiveDeliveryGroup {
   courierId: string;
   courierName: string;
+  courierAvatar: string | null;
   vehicle: string | null;
   averageRating: number;
   orders: Array<{
@@ -84,6 +86,7 @@ export interface DispatchItem {
   deliveryFee: number;
   courierId: string;
   courierName: string;
+  courierAvatar: string | null;
   dispatchedAt: Date;
 }
 
@@ -114,6 +117,7 @@ export interface IAnalyticsRepository {
   ): Promise<Array<{
     id: string;
     name: string;
+    avatar: string | null;
     vehicle: string | null;
     averageRating: number;
     activeOrders: number;

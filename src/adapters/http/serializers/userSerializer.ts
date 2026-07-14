@@ -36,6 +36,7 @@ export function serializeUserPublic(user: PublicUser) {
     email: user.email,
     role: user.role,
     phone: user.phone,
+    avatar: user.avatar ?? null,
     status: user.status,
     avatar: user.avatar ?? null,
   };

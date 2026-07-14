@@ -28,6 +28,7 @@ export interface OrderSummary {
   restaurant_name: string;
   customer_name: string;
   courier_name: string | null;
+  courier_avatar: string | null;
   total_cop: number;
   created_at: string;
   estimated_delivery_at: string | null;
@@ -39,6 +40,7 @@ export interface ActiveCourier {
   email: string;
   phone: string | null;
   vehicle: string | null;
+  avatar: string | null;
   availability: CourierAvailability;
   active_orders: number;
 }
