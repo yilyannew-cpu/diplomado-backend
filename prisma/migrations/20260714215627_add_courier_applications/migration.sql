@@ -1,5 +1,5 @@
-﻿-- Reparación idempotente: en Neon ya existían PaymentStatus/PaymentMethod
--- (schema push o intento previo). Esta migración solo debe añadir
+-- Reparacion idempotente: en Neon ya existian PaymentStatus/PaymentMethod
+-- (schema push o intento previo). Esta migracion solo debe anadir
 -- ApplicationStatus + courier_applications y alinear columnas de pago si siguen en TEXT.
 
 -- CreateEnum (si ya existen, no falla)
@@ -21,7 +21,7 @@ EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
 
--- Convertir payment_method TEXT → enum (sin DROP COLUMN)
+-- Convertir payment_method TEXT -> enum (sin DROP COLUMN)
 DO $$ BEGIN
   IF EXISTS (
     SELECT 1
@@ -40,7 +40,7 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- Convertir payment_status TEXT → enum (sin DROP COLUMN)
+-- Convertir payment_status TEXT -> enum (sin DROP COLUMN)
 DO $$ BEGIN
   IF EXISTS (
     SELECT 1
