@@ -1,42 +1,92 @@
-/*
-  Warnings:
+﻿-- Reparación idempotente: en Neon ya existían PaymentStatus/PaymentMethod
+-- (schema push o intento previo). Esta migración solo debe añadir
+-- ApplicationStatus + courier_applications y alinear columnas de pago si siguen en TEXT.
 
-  - The `payment_method` column on the `orders` table would be dropped and recreated. This will lead to data loss if there is data in the column.
-  - The `payment_status` column on the `orders` table would be dropped and recreated. This will lead to data loss if there is data in the column.
+-- CreateEnum (si ya existen, no falla)
+DO $$ BEGIN
+  CREATE TYPE "PaymentStatus" AS ENUM ('Pending', 'Paid', 'Failed', 'Refunded');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-*/
--- CreateEnum
-CREATE TYPE "PaymentStatus" AS ENUM ('Pending', 'Paid', 'Failed', 'Refunded');
+DO $$ BEGIN
+  CREATE TYPE "PaymentMethod" AS ENUM ('Cash', 'Online');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
--- CreateEnum
-CREATE TYPE "PaymentMethod" AS ENUM ('Cash', 'Online');
+DO $$ BEGIN
+  CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
--- CreateEnum
-CREATE TYPE "ApplicationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED');
+-- Convertir payment_method TEXT → enum (sin DROP COLUMN)
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'orders'
+      AND column_name = 'payment_method'
+      AND udt_name = 'text'
+  ) THEN
+    ALTER TABLE "orders" ALTER COLUMN "payment_method" DROP DEFAULT;
+    ALTER TABLE "orders"
+      ALTER COLUMN "payment_method" TYPE "PaymentMethod"
+      USING ("payment_method"::"PaymentMethod");
+    ALTER TABLE "orders"
+      ALTER COLUMN "payment_method" SET DEFAULT 'Cash'::"PaymentMethod";
+  END IF;
+END $$;
 
--- AlterTable
-ALTER TABLE "orders" DROP COLUMN "payment_method",
-ADD COLUMN     "payment_method" "PaymentMethod" NOT NULL DEFAULT 'Cash',
-DROP COLUMN "payment_status",
-ADD COLUMN     "payment_status" "PaymentStatus" NOT NULL DEFAULT 'Pending';
+-- Convertir payment_status TEXT → enum (sin DROP COLUMN)
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'orders'
+      AND column_name = 'payment_status'
+      AND udt_name = 'text'
+  ) THEN
+    ALTER TABLE "orders" ALTER COLUMN "payment_status" DROP DEFAULT;
+    ALTER TABLE "orders"
+      ALTER COLUMN "payment_status" TYPE "PaymentStatus"
+      USING ("payment_status"::"PaymentStatus");
+    ALTER TABLE "orders"
+      ALTER COLUMN "payment_status" SET DEFAULT 'Pending'::"PaymentStatus";
+  END IF;
+END $$;
 
--- CreateTable
-CREATE TABLE "courier_applications" (
+-- Tabla de postulaciones de domiciliarios
+CREATE TABLE IF NOT EXISTS "courier_applications" (
     "id" TEXT NOT NULL,
     "courier_id" TEXT NOT NULL,
     "restaurant_id" TEXT NOT NULL,
     "status" "ApplicationStatus" NOT NULL DEFAULT 'PENDING',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "courier_applications_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "courier_applications_courier_id_restaurant_id_key" ON "courier_applications"("courier_id", "restaurant_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "courier_applications_courier_id_restaurant_id_key"
+  ON "courier_applications"("courier_id", "restaurant_id");
 
--- AddForeignKey
-ALTER TABLE "courier_applications" ADD CONSTRAINT "courier_applications_courier_id_fkey" FOREIGN KEY ("courier_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "courier_applications"
+    ADD CONSTRAINT "courier_applications_courier_id_fkey"
+    FOREIGN KEY ("courier_id") REFERENCES "users"("id")
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
--- AddForeignKey
-ALTER TABLE "courier_applications" ADD CONSTRAINT "courier_applications_restaurant_id_fkey" FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "courier_applications"
+    ADD CONSTRAINT "courier_applications_restaurant_id_fkey"
+    FOREIGN KEY ("restaurant_id") REFERENCES "restaurants"("id")
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
