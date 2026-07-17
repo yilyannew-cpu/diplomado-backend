@@ -11,6 +11,12 @@ services:
       - "5432:5432"
     volumes:
       - ffcore_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ffcore -d ffcore"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 5s
 
 volumes:
   ffcore_pgdata:

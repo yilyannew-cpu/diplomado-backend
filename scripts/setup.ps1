@@ -28,23 +28,27 @@ try {
     exit 1
 }
 
-# PostgreSQL (opcional — solo aviso)
-$pgServices = @("postgresql-x64-17", "postgresql-x64-18", "postgresql-x64-16")
-$pgRunning = $false
-foreach ($svc in $pgServices) {
-    $s = Get-Service -Name $svc -ErrorAction SilentlyContinue
-    if ($s -and $s.Status -eq "Running") {
-        Write-Host "PostgreSQL: $svc (Running)" -ForegroundColor Green
-        $pgRunning = $true
-        break
-    }
+# PostgreSQL: Docker está en Ubuntu (WSL), no en Windows
+$docker = Get-Command docker -ErrorAction SilentlyContinue
+if ($docker) {
+    Write-Host "Docker en PATH de Windows. Si falla, usa Ubuntu: wsl → npm run db:up" -ForegroundColor Yellow
+} else {
+    Write-Host "Docker no está en Windows PATH (normal si solo lo tienes en Ubuntu)." -ForegroundColor Yellow
+    Write-Host "  Abre Ubuntu/WSL y ejecuta:" -ForegroundColor Cyan
+    Write-Host "    cd /mnt/c/Users/yilgr/OneDrive/Desktop/diplomado-backend" -ForegroundColor White
+    Write-Host "    npm run db:up && npm run setup && npm run dev" -ForegroundColor White
 }
-if (-not $pgRunning) {
-    $docker = Get-Command docker -ErrorAction SilentlyContinue
-    if ($docker) {
-        Write-Host "PostgreSQL Windows no detectado. Puedes usar Docker: npm run setup:docker" -ForegroundColor Yellow
-    } else {
-        Write-Host "ADVERTENCIA: PostgreSQL no detectado en ejecución. Las migraciones pueden fallar." -ForegroundColor Yellow
+
+# Aviso si .env apunta a Neon
+$envFile = Join-Path $ProjectRoot ".env"
+if (Test-Path $envFile) {
+    $envContent = Get-Content $envFile -Raw
+    if ($envContent -match 'neon\.tech') {
+        Write-Host ""
+        Write-Host "ERROR: tu .env apunta a Neon (nube/producción)." -ForegroundColor Red
+        Write-Host "  En Ubuntu: cp .env.example .env" -ForegroundColor Red
+        Write-Host "  Neon solo se usa en Render." -ForegroundColor Red
+        exit 1
     }
 }
 
