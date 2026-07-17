@@ -1,5 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { container } from '../../../container';
+import { ApplicationStatus } from '../../../domain/enums';
+
+function paramId(req: Request): string {
+  const id = req.params.id;
+  return Array.isArray(id) ? id[0] : id;
+}
 
 export async function applyController(req: Request, res: Response, next: NextFunction) {
   try {
@@ -14,8 +20,8 @@ export async function applyController(req: Request, res: Response, next: NextFun
 
 export async function reviewController(req: Request, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
-    const { status } = req.body;
+    const id = paramId(req);
+    const { status } = req.body as { status: ApplicationStatus };
     const application = await container.reviewApplicationUseCase.execute(id, status);
     res.json(application);
   } catch (error) {
