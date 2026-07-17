@@ -8,16 +8,40 @@ Backend REST para FFCore: auth JWT, panel admin restaurante, catálogo cliente, 
 
 ---
 
-## Inicio rápido
+## Local vs producción
+
+| Entorno | Base de datos |
+|---------|----------------|
+| **Local** | Postgres en **Docker** (`ffcore-db`) |
+| **Producción (Render)** | **Neon** (solo en el dashboard) |
+
+Guía completa (errores, Windows, WSL, sin Docker): **[docs/DEPLOY-LOCAL.md](docs/DEPLOY-LOCAL.md)**  
+Producción: **[docs/DEPLOY-RENDER.md](docs/DEPLOY-RENDER.md)**
+
+### Arranque local (1 comando + API)
 
 ```bash
-cp .env.example .env   # ajustar DATABASE_URL
-npm install
-npm run setup          # migraciones + seed
-npm run dev            # http://localhost:3000
+npm run local      # Docker Postgres + .env + migraciones + seed
+npm run dev        # http://localhost:3000
 ```
 
-Seed actual: solo **superadmin** (`super@ffcore.co` / `demo`). El resto del flujo se crea vía API.
+O todo junto:
+
+```bash
+npm run local:dev
+```
+
+Login demo: `super@ffcore.co` / `demo`
+
+Frontend (otro repo, con Bun):
+
+```bash
+cd diplomado-frontend
+bun run dev
+```
+
+> Requiere Docker (Desktop en Windows **o** Docker en Ubuntu/WSL).  
+> Si Docker solo está en Ubuntu: corre los comandos del backend **dentro de WSL**.
 
 ---
 
@@ -25,9 +49,10 @@ Seed actual: solo **superadmin** (`super@ffcore.co` / `demo`). El resto del fluj
 
 | Documento | Para quién |
 |-----------|------------|
-| [API Panel Admin](docs/API-PANEL-ADMIN-RESTAURANTE.md) | Frontend `/admin` — Kanban, menú, promos, analytics |
-| [API Cliente](docs/API-CLIENTE-FLUJO-MINIMO.md) | Frontend cliente — catálogo, pedidos, tracking |
-| [Deploy Render + Neon](docs/DEPLOY-RENDER.md) | Despliegue en producción |
+| [Despliegue LOCAL](docs/DEPLOY-LOCAL.md) | Profesor / equipo — correr el backend en PC |
+| [API Panel Admin](docs/API-PANEL-ADMIN-RESTAURANTE.md) | Frontend `/admin` |
+| [API Cliente](docs/API-CLIENTE-FLUJO-MINIMO.md) | Frontend cliente |
+| [Deploy Render + Neon](docs/DEPLOY-RENDER.md) | Producción |
 
 ---
 
@@ -35,17 +60,18 @@ Seed actual: solo **superadmin** (`super@ffcore.co` / `demo`). El resto del fluj
 
 | Comando | Descripción |
 |---------|-------------|
-| `npm run dev` | Servidor desarrollo |
-| `npm run build` | Compilar TypeScript |
-| `npm start` | Producción (migraciones + servidor) |
-| `npx prisma db seed` | Reset BD → solo superadmin |
-| `npm run setup:docker` | Postgres en Docker + setup |
+| `npm run local` | **BD Docker + setup** (recomendado) |
+| `npm run local:dev` | local + arranca la API |
+| `npm run dev` | Solo API (BD ya levantada) |
+| `npm run db:up` / `db:down` | Solo Postgres |
+| `npm run setup` | install + migrate + seed |
+| `make fire` | Opcional: API+BD todo en Docker |
 
 ---
 
 ## Postman
 
-Importar `postman/FFCore-API.postman_collection.json` — variable `baseUrl`: `http://localhost:3000/api/v1`
+Importar `postman/FFCore-API.postman_collection.json` — `baseUrl`: `http://localhost:3000/api/v1`
 
 ---
 
@@ -58,5 +84,6 @@ src/
   infrastructure/  Prisma, repos, servicios
   adapters/http/   Express, rutas, controllers
 prisma/            Schema, migraciones, seed
-scripts/           Setup local y migrate-deploy (Render)
+scripts/           local.cjs, setup, migrate-deploy (Render)
+docs/              Guías local y producción
 ```

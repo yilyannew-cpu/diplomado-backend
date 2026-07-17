@@ -57,9 +57,30 @@ if (!existsSync(envPath)) {
     fail('No existe .env ni .env.example');
   }
   copyFileSync(envExamplePath, envPath);
-  log('Creado .env desde .env.example — revisa DATABASE_URL y tu contraseña de Postgres');
+  log('Creado .env desde .env.example — apunta a Postgres LOCAL (Docker)');
 } else {
   log('.env encontrado');
+}
+
+// --- Guardrail: no usar Neon/producción en local ---
+try {
+  require('dotenv').config({ path: envPath });
+} catch {
+  // dotenv ya es dependencia; si falla, seguimos
+}
+const dbUrl = process.env.DATABASE_URL ?? '';
+if (/neon\.tech|onrender\.com/i.test(dbUrl)) {
+  fail(
+    `DATABASE_URL apunta a la nube (Neon/producción).\n` +
+      `  En local debes usar Postgres Docker: npm run db:up\n` +
+      `  Copia .env.example → .env (ffcore@127.0.0.1:5432).\n` +
+      `  Neon solo se configura en el dashboard de Render.`
+  );
+}
+if (!dbUrl.includes('127.0.0.1') && !dbUrl.includes('localhost')) {
+  console.warn(
+    '\n⚠ DATABASE_URL no parece local (localhost/127.0.0.1). Revisa que no sea producción.\n'
+  );
 }
 
 // --- Limpieza opcional (WSL/Windows mezclados) ---
@@ -93,13 +114,13 @@ if (!skipMigrate) {
     console.error(`
 ✗ No se pudieron aplicar las migraciones.
 
-Verifica:
-  1. PostgreSQL está corriendo (en Windows: Get-Service postgresql-x64-17)
-  2. DATABASE_URL en .env apunta a tu instancia (ej. 127.0.0.1:5433/ffcore)
-  3. La base de datos "ffcore" existe
+Verifica (todo desde Ubuntu, donde está Docker):
+  1. cd /mnt/c/Users/yilgr/OneDrive/Desktop/diplomado-backend
+  2. npm run db:up
+  3. cp .env.example .env   # ffcore@127.0.0.1:5432 — NO Neon
+  4. npm run setup
 
-Luego ejecuta de nuevo: npm run setup
-O solo migraciones: npm run prisma:migrate
+Neon solo en Render. Luego: npm run setup de nuevo
 `);
     process.exit(1);
   }
@@ -120,10 +141,14 @@ Siguiente paso:
 API local:
   http://localhost:3000/api/v1/health
 
-Login demo:
-  cliente@ffcore.co / demo
+Login demo (tras seed):
+  super@ffcore.co / demo
 
-Frontend (.env):
+BD local: Docker Postgres (no Neon)
+Producción: Neon vía variables en Render
+
+Frontend (.env del front + Bun):
   VITE_API_URL=http://localhost:3000/api/v1
+  bun run dev
 ═══════════════════════════════════════════════════════════
 `);

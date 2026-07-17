@@ -11,11 +11,15 @@
     "start:render": "node dist/server.js",
     "setup": "node scripts/setup.cjs",
     "setup:clean": "node scripts/setup.cjs --clean",
-    "setup:docker": "docker compose up -d && node scripts/setup.cjs",
+    "setup:docker": "node scripts/local.cjs",
     "setup:win": "powershell -ExecutionPolicy Bypass -File scripts/setup.ps1",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
+    "local": "node scripts/local.cjs",
+    "local:dev": "node scripts/local.cjs --dev",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
     "db:reset-data": "prisma db seed"
   },
   "prisma": {
