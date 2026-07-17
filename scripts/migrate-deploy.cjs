@@ -82,27 +82,51 @@ function tryMigrateDeploy(migrateUrl) {
 
 function extractFailedMigrationNames(output) {
   const names = new Set();
-  const regex = /The `(\d+_[^`]+)` migration/g;
-  let match = regex.exec(output);
-  while (match) {
-    names.add(match[1]);
-    match = regex.exec(output);
+  const patterns = [
+    /The `(\d+_[^`]+)` migration/g,
+    /Migration name:\s*(\d+_[A-Za-z0-9_]+)/g,
+    /migration `(\d+_[^`]+)` failed/gi,
+  ];
+
+  for (const regex of patterns) {
+    let match = regex.exec(output);
+    while (match) {
+      names.add(match[1]);
+      match = regex.exec(output);
+    }
   }
   return [...names];
 }
 
 function resolveFailedMigrations(migrateUrl, output) {
-  if (!/P3009/.test(output)) return false;
+  // P3009 = hay una migración fallida bloqueando; también capturamos el mensaje genérico de Prisma.
+  const looksFailed =
+    /P3009/.test(output) ||
+    /A migration failed to apply/i.test(output) ||
+    /migrate found failed migrations/i.test(output);
+
+  if (!looksFailed) return false;
 
   const names = extractFailedMigrationNames(output);
   if (names.length === 0) {
-    console.warn('[migrate] P3009 detectado pero no se pudo leer el nombre de la migración');
-    return false;
+    if (/20260714215627_add_courier_applications|type "PaymentStatus" already exists/i.test(output)) {
+      names.push('20260714215627_add_courier_applications');
+      console.warn(
+        '[migrate] Usando fallback 20260714215627_add_courier_applications (PaymentStatus duplicado)',
+      );
+    } else {
+      console.warn('[migrate] Migración fallida detectada pero no se pudo leer el nombre');
+      return false;
+    }
   }
 
   for (const name of names) {
-    console.warn(`[migrate] P3009: reintentando migración fallida → ${name}`);
-    runPrisma(`migrate resolve --rolled-back "${name}"`, migrateUrl);
+    console.warn(`[migrate] Marcando migración fallida como rolled-back → ${name}`);
+    try {
+      runPrisma(`migrate resolve --rolled-back "${name}"`, migrateUrl);
+    } catch (e) {
+      console.warn(`[migrate] resolve rolled-back falló para ${name}: ${e.message ?? e}`);
+    }
   }
 
   return true;
