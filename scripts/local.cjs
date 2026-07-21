@@ -119,7 +119,7 @@ if (!dockerAvailable()) {
     'Docker no está disponible en este terminal.\n\n' +
       '  • Windows + Docker Desktop: abre PowerShell y vuelve a intentar.\n' +
       '  • Docker solo en Ubuntu/WSL: entra con `wsl` y corre `npm run local` ahí.\n' +
-      '  • Sin Docker: instala Postgres y configura .env a mano (ver docs/DEPLOY-LOCAL.md).',
+      '  • Sin Docker: instala Postgres local y configura .env (ver README).',
   );
 }
 
