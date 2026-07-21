@@ -172,8 +172,12 @@ export class PrismaOrderRepository implements IOrderRepository {
     return records.map((r) => mapOrderWithProductNames(r as any));
   }
 
+  /**
+   * Entrega operativa al domiciliario: el pedido sigue en Listo + asignado.
+   * EnCamino lo marca solo el domiciliario con start-delivery (botón "En camino"),
+   * para que el cliente vea el cambio cuando realmente sale a ruta.
+   */
   async dispatchOrders(orderIds: string[], restaurantId: string) {
-    const now = new Date();
     const orders = await prisma.order.findMany({
       where: {
         id: { in: orderIds },
@@ -185,33 +189,10 @@ export class PrismaOrderRepository implements IOrderRepository {
     });
 
     if (orders.length === 0) {
-      throw new NotFoundError('No hay pedidos listos para despachar');
+      throw new NotFoundError('No hay pedidos listos con domiciliario asignado');
     }
 
-    await prisma.$transaction(async (tx) => {
-      for (const order of orders) {
-        await tx.order.update({
-          where: { id: order.id },
-          data: { status: 'EnCamino', status_entered_at: now },
-        });
-        await tx.dispatch.upsert({
-          where: { order_id: order.id },
-          create: {
-            order_id: order.id,
-            courier_id: order.delivery_person_id!,
-            restaurant_id: restaurantId,
-            dispatched_at: now,
-          },
-          update: { dispatched_at: now },
-        });
-      }
-    });
-
-    const updated = await prisma.order.findMany({
-      where: { id: { in: orders.map((o) => o.id) } },
-      include: orderInclude,
-    });
-    return updated.map((r) => mapOrderWithProductNames(r as any));
+    return orders.map((r) => mapOrderWithProductNames(r as any));
   }
 
   async listAvailableForDelivery(restaurantId?: string) {
