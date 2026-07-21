@@ -26,6 +26,7 @@ export interface UpdateUserData {
   avatar?: string | null;
   role?: Role;
   status?: UserStatus;
+  isAvailable?: boolean;
   restaurantId?: string | null;
   passwordHash?: string;
 }

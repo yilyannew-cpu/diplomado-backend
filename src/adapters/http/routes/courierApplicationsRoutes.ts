@@ -6,6 +6,7 @@ import {
   applyController,
   reviewController,
   listController,
+  toggleAvailabilityController,
 } from '../controllers/courierApplicationsController';
 
 const authenticate = createAuthenticateMiddleware(container.tokenService);
@@ -33,4 +34,12 @@ courierApplicationsRouter.patch(
   authenticate,
   authorize(Role.ADMIN, Role.SUPERADMIN),
   reviewController,
+);
+
+// Domiciliario cambia su estado de disponibilidad
+courierApplicationsRouter.patch(
+  '/availability',
+  authenticate,
+  authorize(Role.DOMICILIARIO),
+  toggleAvailabilityController,
 );

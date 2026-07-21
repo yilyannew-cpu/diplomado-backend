@@ -12,6 +12,7 @@ export interface User {
   avatar: string | null;
   comuna: string | null;
   status: UserStatus;
+  isAvailable: boolean;
   restaurantId: string | null;
   createdAt: Date;
   updatedAt: Date;

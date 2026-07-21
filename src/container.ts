@@ -22,6 +22,7 @@ import { CreateUserUseCase } from './application/use-cases/users/CreateUserUseCa
 import { ApproveUserUseCase } from './application/use-cases/users/ApproveUserUseCase';
 import { RejectUserUseCase } from './application/use-cases/users/RejectUserUseCase';
 import { ListPendingRegistrationsUseCase } from './application/use-cases/users/ListPendingRegistrationsUseCase';
+import { ToggleUserAvailabilityUseCase } from './application/use-cases/users/ToggleUserAvailabilityUseCase';
 import { ListRestaurantsUseCase } from './application/use-cases/restaurants/ListRestaurantsUseCase';
 import { GetRestaurantUseCase, UpdateRestaurantUseCase } from './application/use-cases/restaurants/RestaurantUseCases';
 import {
@@ -151,6 +152,7 @@ export const container = {
   listUsersUseCase: new ListUsersUseCase(userRepository),
   getUserByIdUseCase: new GetUserByIdUseCase(userRepository),
   updateUserUseCase: new UpdateUserUseCase(userRepository, restaurantRepository),
+  toggleUserAvailabilityUseCase: new ToggleUserAvailabilityUseCase(userRepository),
   listRestaurantsUseCase: new ListRestaurantsUseCase(restaurantRepository),
   getRestaurantUseCase: new GetRestaurantUseCase(restaurantRepository),
   updateRestaurantUseCase: new UpdateRestaurantUseCase(restaurantRepository),

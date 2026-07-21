@@ -179,6 +179,7 @@ export class PrismaOperationsRepository implements IOperationsRepository {
       where: {
         role: roleToPrisma[Role.DOMICILIARIO],
         status: statusToPrisma[UserStatus.ACTIVO],
+        is_available: true,
       },
       orderBy: { name: 'asc' },
     });
