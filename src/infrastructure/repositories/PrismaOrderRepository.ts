@@ -109,6 +109,30 @@ export class PrismaOrderRepository implements IOrderRepository {
     return mapOrderWithProductNames(match as any);
   }
 
+  async listByPhone(phone: string, limit = 40): Promise<OrderWithProductNames[]> {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 7) return [];
+
+    const take = Math.min(Math.max(limit, 1), 100);
+    const records = await prisma.order.findMany({
+      orderBy: { created_at: 'desc' },
+      take: Math.max(take * 4, 80),
+      include: orderInclude,
+    });
+
+    const last10 = digits.slice(-10);
+    const matched = records.filter((record) => {
+      const orderDigits = record.phone.replace(/\D/g, '');
+      return (
+        orderDigits === digits ||
+        orderDigits.endsWith(last10) ||
+        digits.endsWith(orderDigits.slice(-10))
+      );
+    });
+
+    return matched.slice(0, take).map((record) => mapOrderWithProductNames(record as any));
+  }
+
   async listByRestaurant(filters: ListRestaurantOrdersFilters): Promise<OrderWithProductNames[]> {
     const where: Record<string, unknown> = { restaurant_id: filters.restaurantId };
     if (filters.statuses?.length) {

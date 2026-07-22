@@ -1,12 +1,16 @@
 import { IOrderRepository } from '../../ports/IOrderRepository';
-import { IUserRepository } from '../../ports';
-import { OrderStatus, Role, UserStatus } from '../../../domain/enums';
+import { IUserRepository, ICourierApplicationRepository } from '../../ports';
+import { ApplicationStatus, OrderStatus, Role, UserStatus } from '../../../domain/enums';
 import { DomainError, ForbiddenError, NotFoundError } from '../../../domain/errors';
 import {
   assertCourierCanTakeBatch,
   loadCourierActiveOrders,
   MAX_ORDERS_PER_COURIER,
 } from '../../../shared/courierLimits';
+import {
+  markCourierAvailableIfIdle,
+  markCourierUnavailableOnDelivery,
+} from '../courier-applications/SetCourierAvailabilityUseCase';
 
 /** @deprecated Preferir MAX_ORDERS_PER_COURIER. */
 export const COURIER_MAX_IN_ROUTE = MAX_ORDERS_PER_COURIER;
@@ -14,11 +18,13 @@ export const COURIER_MAX_IN_ROUTE = MAX_ORDERS_PER_COURIER;
 /**
  * Domiciliario acepta un pedido Listo sin asignar.
  * Queda en Listo + delivery_person_id (esperando salir / "recogido").
+ * Requiere contrato ACCEPTED con el restaurante del pedido.
  */
 export class AcceptDeliveryUseCase {
   constructor(
     private orderRepo: IOrderRepository,
     private userRepo: IUserRepository,
+    private appRepo: ICourierApplicationRepository,
   ) {}
 
   async execute(orderId: string, courierId: string) {
@@ -28,6 +34,12 @@ export class AcceptDeliveryUseCase {
     }
     if (courier.status !== UserStatus.ACTIVO) {
       throw new ForbiddenError('COURIER_INACTIVE', 'Tu cuenta de domiciliario no está activa');
+    }
+    if (!courier.isAvailable) {
+      throw new ForbiddenError(
+        'COURIER_OFFLINE',
+        'Estás desconectado. Activa tu turno para aceptar pedidos.',
+      );
     }
 
     const order = await this.orderRepo.findById(orderId);
@@ -40,10 +52,11 @@ export class AcceptDeliveryUseCase {
       throw new DomainError('ORDER_ALREADY_ASSIGNED', 'Este pedido ya tiene domiciliario asignado');
     }
 
-    if (courier.restaurantId && order.restaurantId !== courier.restaurantId) {
+    const app = await this.appRepo.findExisting(courierId, order.restaurantId);
+    if (!app || app.status !== ApplicationStatus.ACCEPTED) {
       throw new ForbiddenError(
         'WRONG_RESTAURANT',
-        'Este pedido pertenece a otro restaurante',
+        'No estás contratado en el restaurante de este pedido.',
       );
     }
 
@@ -61,19 +74,29 @@ export class AcceptDeliveryUseCase {
 
 /** Listo + asignado a mí → EnCamino (el cliente ya ve el mapa). */
 export class StartDeliveryUseCase {
-  constructor(private orderRepo: IOrderRepository) {}
+  constructor(
+    private orderRepo: IOrderRepository,
+    private userRepo: IUserRepository,
+  ) {}
 
   async execute(orderId: string, courierId: string) {
-    return this.orderRepo.startDeliveryByCourier(orderId, courierId);
+    const order = await this.orderRepo.startDeliveryByCourier(orderId, courierId);
+    await markCourierUnavailableOnDelivery(this.userRepo, courierId);
+    return order;
   }
 }
 
 /** EnCamino + asignado a mí → Entregado. */
 export class CompleteDeliveryUseCase {
-  constructor(private orderRepo: IOrderRepository) {}
+  constructor(
+    private orderRepo: IOrderRepository,
+    private userRepo: IUserRepository,
+  ) {}
 
   async execute(orderId: string, courierId: string) {
-    return this.orderRepo.completeDeliveryByCourier(orderId, courierId);
+    const order = await this.orderRepo.completeDeliveryByCourier(orderId, courierId);
+    await markCourierAvailableIfIdle(this.userRepo, courierId);
+    return order;
   }
 }
 
@@ -87,13 +110,13 @@ export class ListMyCourierOrdersUseCase {
 }
 
 /**
- * Disponibles: Listo sin asignar.
- * Si el courier tiene restaurantId, filtra esa sede.
+ * Disponibles: Listo sin asignar, solo de restaurantes donde el domi está ACCEPTED.
  */
 export class ListCourierAvailableDeliveriesUseCase {
   constructor(
     private orderRepo: IOrderRepository,
     private userRepo: IUserRepository,
+    private appRepo: ICourierApplicationRepository,
   ) {}
 
   async execute(courierId: string, restaurantIdQuery?: string) {
@@ -102,10 +125,22 @@ export class ListCourierAvailableDeliveriesUseCase {
       throw new ForbiddenError('NOT_COURIER', 'Solo domiciliarios pueden ver la cola');
     }
 
-    const restaurantId =
-      restaurantIdQuery ?? courier.restaurantId ?? undefined;
+    const apps = await this.appRepo.listByCourier(courierId);
+    const acceptedRestaurantIds = apps
+      .filter((a) => a.status === ApplicationStatus.ACCEPTED)
+      .map((a) => a.restaurantId);
 
-    return this.orderRepo.listAvailableForDelivery(restaurantId);
+    if (acceptedRestaurantIds.length === 0) return [];
+
+    if (restaurantIdQuery) {
+      if (!acceptedRestaurantIds.includes(restaurantIdQuery)) return [];
+      return this.orderRepo.listAvailableForDelivery(restaurantIdQuery);
+    }
+
+    const batches = await Promise.all(
+      acceptedRestaurantIds.map((id) => this.orderRepo.listAvailableForDelivery(id)),
+    );
+    return batches.flat();
   }
 }
 
@@ -115,7 +150,10 @@ export class ListCourierAvailableDeliveriesUseCase {
  * - Domiciliario: solo sus pedidos y solo EnCamino | Entregado con transición válida
  */
 export class UpdateOrderStatusSecureUseCase {
-  constructor(private orderRepo: IOrderRepository) {}
+  constructor(
+    private orderRepo: IOrderRepository,
+    private userRepo: IUserRepository,
+  ) {}
 
   async execute(input: {
     orderId: string;
@@ -143,9 +181,13 @@ export class UpdateOrderStatusSecureUseCase {
       }
 
       if (input.status === OrderStatus.EN_CAMINO) {
-        return this.orderRepo.startDeliveryByCourier(input.orderId, input.actorId);
+        const updated = await this.orderRepo.startDeliveryByCourier(input.orderId, input.actorId);
+        await markCourierUnavailableOnDelivery(this.userRepo, input.actorId);
+        return updated;
       }
-      return this.orderRepo.completeDeliveryByCourier(input.orderId, input.actorId);
+      const updated = await this.orderRepo.completeDeliveryByCourier(input.orderId, input.actorId);
+      await markCourierAvailableIfIdle(this.userRepo, input.actorId);
+      return updated;
     }
 
     return this.orderRepo.updateStatus(input.orderId, input.status);

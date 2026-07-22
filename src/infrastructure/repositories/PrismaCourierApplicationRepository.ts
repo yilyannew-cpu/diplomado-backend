@@ -1,11 +1,18 @@
-import { PrismaClient } from '@prisma/client';
 import { ICourierApplicationRepository } from '../../application/ports';
 import { CourierApplication } from '../../domain/entities/CourierApplication';
 import { ApplicationStatus } from '../../domain/enums';
+import { prisma } from '../database/prisma/client';
 
-const prisma = new PrismaClient();
-
-function toDomain(row: any): CourierApplication {
+function toDomain(row: {
+  id: string;
+  courier_id: string;
+  restaurant_id: string;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+  courier?: { name: string } | null;
+  restaurant?: { name: string } | null;
+}): CourierApplication {
   return {
     id: row.id,
     courierId: row.courier_id,
@@ -21,7 +28,7 @@ function toDomain(row: any): CourierApplication {
 const includeRelations = {
   courier: { select: { name: true } },
   restaurant: { select: { name: true } },
-};
+} as const;
 
 export class PrismaCourierApplicationRepository implements ICourierApplicationRepository {
   async create(courierId: string, restaurantId: string): Promise<CourierApplication> {

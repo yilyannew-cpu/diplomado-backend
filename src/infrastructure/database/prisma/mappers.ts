@@ -79,6 +79,7 @@ export function mapUser(record: PrismaUser): User {
     avatar: record.avatar,
     comuna: (record as { comuna?: string | null }).comuna ?? null,
     status: statusMap[record.status],
+    isAvailable: (record as { is_available?: boolean }).is_available ?? false,
     restaurantId: record.restaurant_id,
     createdAt: record.created_at,
     updatedAt: record.updated_at,

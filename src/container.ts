@@ -58,6 +58,7 @@ import {
   ListCourierOrdersUseCase,
   GetOrderByCodeUseCase,
   GetMyActiveOrderUseCase,
+  GetMyOrdersHistoryUseCase,
 } from './application/use-cases/orders/OrderUseCases';
 import {
   AcceptDeliveryUseCase,
@@ -108,6 +109,7 @@ import {
   ReviewApplicationUseCase,
   ListApplicationsUseCase,
 } from './application/use-cases/courier-applications/CourierApplicationUseCases';
+import { SetCourierAvailabilityUseCase } from './application/use-cases/courier-applications/SetCourierAvailabilityUseCase';
 
 const userRepository = new PrismaUserRepository();
 const restaurantRepository = new PrismaRestaurantRepository();
@@ -174,22 +176,31 @@ export const container = {
   createOrderUseCase: new CreateOrderUseCase(orderRepository, productRepository),
   listRestaurantOrdersUseCase: new ListRestaurantOrdersUseCase(orderRepository),
   updateOrderStatusUseCase: new UpdateOrderStatusUseCase(orderRepository),
-  assignCourierUseCase: new AssignCourierUseCase(orderRepository),
-  batchAssignCourierUseCase: new BatchAssignCourierUseCase(orderRepository),
+  assignCourierUseCase: new AssignCourierUseCase(orderRepository, courierApplicationRepository),
+  batchAssignCourierUseCase: new BatchAssignCourierUseCase(
+    orderRepository,
+    courierApplicationRepository,
+  ),
   batchDispatchOrdersUseCase: new BatchDispatchOrdersUseCase(orderRepository),
   listAvailableDeliveriesUseCase: new ListAvailableDeliveriesUseCase(orderRepository),
   listCourierOrdersUseCase: new ListCourierOrdersUseCase(orderRepository),
   getOrderByCodeUseCase: new GetOrderByCodeUseCase(orderRepository),
   getMyActiveOrderUseCase: new GetMyActiveOrderUseCase(orderRepository, userRepository),
-  acceptDeliveryUseCase: new AcceptDeliveryUseCase(orderRepository, userRepository),
-  startDeliveryUseCase: new StartDeliveryUseCase(orderRepository),
-  completeDeliveryUseCase: new CompleteDeliveryUseCase(orderRepository),
+  getMyOrdersHistoryUseCase: new GetMyOrdersHistoryUseCase(orderRepository, userRepository),
+  acceptDeliveryUseCase: new AcceptDeliveryUseCase(
+    orderRepository,
+    userRepository,
+    courierApplicationRepository,
+  ),
+  startDeliveryUseCase: new StartDeliveryUseCase(orderRepository, userRepository),
+  completeDeliveryUseCase: new CompleteDeliveryUseCase(orderRepository, userRepository),
   listMyCourierOrdersUseCase: new ListMyCourierOrdersUseCase(orderRepository),
   listCourierAvailableDeliveriesUseCase: new ListCourierAvailableDeliveriesUseCase(
     orderRepository,
     userRepository,
+    courierApplicationRepository,
   ),
-  updateOrderStatusSecureUseCase: new UpdateOrderStatusSecureUseCase(orderRepository),
+  updateOrderStatusSecureUseCase: new UpdateOrderStatusSecureUseCase(orderRepository, userRepository),
   getDeliveryReviewStatusUseCase: new GetDeliveryReviewStatusUseCase(orderRepository),
   submitDeliveryReviewUseCase: new SubmitDeliveryReviewUseCase(orderRepository),
   getCourierRatingUseCase: new GetCourierRatingUseCase(),
@@ -229,6 +240,10 @@ export const container = {
   // Courier Applications
   courierApplicationRepository,
   applyToRestaurantUseCase: new ApplyToRestaurantUseCase(courierApplicationRepository),
-  reviewApplicationUseCase: new ReviewApplicationUseCase(courierApplicationRepository),
+  reviewApplicationUseCase: new ReviewApplicationUseCase(
+    courierApplicationRepository,
+    userRepository,
+  ),
   listApplicationsUseCase: new ListApplicationsUseCase(courierApplicationRepository),
+  setCourierAvailabilityUseCase: new SetCourierAvailabilityUseCase(userRepository),
 };

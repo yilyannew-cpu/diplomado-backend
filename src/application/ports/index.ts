@@ -28,6 +28,7 @@ export interface UpdateUserData {
   status?: UserStatus;
   restaurantId?: string | null;
   passwordHash?: string;
+  isAvailable?: boolean;
 }
 
 export interface ListUsersFilters {
