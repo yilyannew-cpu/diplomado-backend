@@ -30,6 +30,9 @@ const ACTIVE_ORDER_STATUSES = [
   OrderStatus.EN_CAMINO,
 ] as const;
 
+/** Misma tasa que el reporte del restaurante (PrismaAnalyticsRepository). */
+const APP_COMMISSION_RATE = 0.05;
+
 function startOfDay(d = new Date()) {
   const date = new Date(d);
   date.setHours(0, 0, 0, 0);
@@ -46,6 +49,10 @@ function dayRange(offsetDays: number) {
   const base = new Date();
   base.setDate(base.getDate() + offsetDays);
   return { gte: startOfDay(base), lte: endOfDay(base) };
+}
+
+function productSales(total: number, deliveryFee: number): number {
+  return Math.max(0, total - deliveryFee);
 }
 
 export class PrismaOperationsRepository implements IOperationsRepository {
@@ -65,7 +72,7 @@ export class PrismaOperationsRepository implements IOperationsRepository {
           created_at: today,
           status: { not: orderStatusToPrisma[OrderStatus.CANCELADO] },
         },
-        _sum: { total: true },
+        _sum: { total: true, delivery_fee: true },
         _count: true,
       }),
       prisma.order.aggregate({
@@ -73,7 +80,7 @@ export class PrismaOperationsRepository implements IOperationsRepository {
           created_at: yesterday,
           status: { not: orderStatusToPrisma[OrderStatus.CANCELADO] },
         },
-        _sum: { total: true },
+        _sum: { total: true, delivery_fee: true },
       }),
       prisma.user.count({
         where: {
@@ -94,6 +101,11 @@ export class PrismaOperationsRepository implements IOperationsRepository {
 
     const salesTodayCop = todayAgg._sum.total ?? 0;
     const salesYesterdayCop = yesterdayAgg._sum.total ?? 0;
+    const productSalesToday = productSales(
+      todayAgg._sum.total ?? 0,
+      todayAgg._sum.delivery_fee ?? 0,
+    );
+    const platformCommissionToday = Math.round(productSalesToday * APP_COMMISSION_RATE);
     const salesDeltaPercent =
       salesYesterdayCop > 0
         ? Math.round(((salesTodayCop - salesYesterdayCop) / salesYesterdayCop) * 1000) / 10
@@ -105,6 +117,8 @@ export class PrismaOperationsRepository implements IOperationsRepository {
       sales_today_cop: salesTodayCop,
       sales_yesterday_cop: salesYesterdayCop,
       sales_delta_percent: salesDeltaPercent,
+      product_sales_today_cop: productSalesToday,
+      platform_commission_today_cop: platformCommissionToday,
       orders_today: todayAgg._count,
       active_couriers: activeCouriers,
       active_restaurants: activeRestaurants,

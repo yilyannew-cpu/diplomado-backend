@@ -4,6 +4,10 @@ export interface DashboardMetrics {
   sales_today_cop: number;
   sales_yesterday_cop: number;
   sales_delta_percent: number;
+  /** Ventas de productos hoy (total − domicilio). Base de la comisión. */
+  product_sales_today_cop: number;
+  /** Comisión de la plataforma hoy (5% sobre productos). */
+  platform_commission_today_cop: number;
   orders_today: number;
   active_couriers: number;
   active_restaurants: number;
