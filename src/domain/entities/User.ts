@@ -12,6 +12,8 @@ export interface User {
   avatar: string | null;
   comuna: string | null;
   status: UserStatus;
+  /** Preferencia de turno del domiciliario. */
+  isAvailable: boolean;
   restaurantId: string | null;
   createdAt: Date;
   updatedAt: Date;

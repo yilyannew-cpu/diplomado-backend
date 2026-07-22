@@ -20,5 +20,6 @@ COPY . .
 
 EXPOSE 3000
 
-# Migraciones + API en modo watch (hot reload con volumen montado)
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run dev"]
+# generate en cada arranque: el volumen api_node_modules puede quedar
+# desfasado del schema montado (p. ej. CourierApplication → findMany undefined).
+CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && npm run dev"]

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { container } from '../../../container';
 import { ApplicationStatus } from '../../../domain/enums';
+import { serializeUserPublic } from '../serializers/userSerializer';
 
 function paramId(req: Request): string {
   const id = req.params.id;
@@ -34,6 +35,21 @@ export async function listController(req: Request, res: Response, next: NextFunc
     const { restaurantId, courierId } = req.query as { restaurantId?: string; courierId?: string };
     const applications = await container.listApplicationsUseCase.execute({ restaurantId, courierId });
     res.json(applications);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function setAvailabilityController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const courierId = req.user!.id;
+    const isAvailable = Boolean(req.body?.isAvailable ?? req.body?.is_available);
+    const user = await container.setCourierAvailabilityUseCase.execute(courierId, isAvailable);
+    res.json({
+      id: user.id,
+      is_available: user.isAvailable,
+      user: serializeUserPublic(user),
+    });
   } catch (error) {
     next(error);
   }

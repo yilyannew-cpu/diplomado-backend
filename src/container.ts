@@ -108,6 +108,7 @@ import {
   ReviewApplicationUseCase,
   ListApplicationsUseCase,
 } from './application/use-cases/courier-applications/CourierApplicationUseCases';
+import { SetCourierAvailabilityUseCase } from './application/use-cases/courier-applications/SetCourierAvailabilityUseCase';
 
 const userRepository = new PrismaUserRepository();
 const restaurantRepository = new PrismaRestaurantRepository();
@@ -182,14 +183,14 @@ export const container = {
   getOrderByCodeUseCase: new GetOrderByCodeUseCase(orderRepository),
   getMyActiveOrderUseCase: new GetMyActiveOrderUseCase(orderRepository, userRepository),
   acceptDeliveryUseCase: new AcceptDeliveryUseCase(orderRepository, userRepository),
-  startDeliveryUseCase: new StartDeliveryUseCase(orderRepository),
-  completeDeliveryUseCase: new CompleteDeliveryUseCase(orderRepository),
+  startDeliveryUseCase: new StartDeliveryUseCase(orderRepository, userRepository),
+  completeDeliveryUseCase: new CompleteDeliveryUseCase(orderRepository, userRepository),
   listMyCourierOrdersUseCase: new ListMyCourierOrdersUseCase(orderRepository),
   listCourierAvailableDeliveriesUseCase: new ListCourierAvailableDeliveriesUseCase(
     orderRepository,
     userRepository,
   ),
-  updateOrderStatusSecureUseCase: new UpdateOrderStatusSecureUseCase(orderRepository),
+  updateOrderStatusSecureUseCase: new UpdateOrderStatusSecureUseCase(orderRepository, userRepository),
   getDeliveryReviewStatusUseCase: new GetDeliveryReviewStatusUseCase(orderRepository),
   submitDeliveryReviewUseCase: new SubmitDeliveryReviewUseCase(orderRepository),
   getCourierRatingUseCase: new GetCourierRatingUseCase(),
@@ -231,4 +232,5 @@ export const container = {
   applyToRestaurantUseCase: new ApplyToRestaurantUseCase(courierApplicationRepository),
   reviewApplicationUseCase: new ReviewApplicationUseCase(courierApplicationRepository),
   listApplicationsUseCase: new ListApplicationsUseCase(courierApplicationRepository),
+  setCourierAvailabilityUseCase: new SetCourierAvailabilityUseCase(userRepository),
 };
