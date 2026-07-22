@@ -3,6 +3,16 @@ import { CourierApplication } from '../../domain/entities/CourierApplication';
 import { ApplicationStatus } from '../../domain/enums';
 import { prisma } from '../database/prisma/client';
 
+type CourierRow = {
+  name: string;
+  email: string;
+  phone: string | null;
+  avatar: string | null;
+  vehicle: string | null;
+  document_id: string | null;
+  is_available: boolean;
+};
+
 function toDomain(row: {
   id: string;
   courier_id: string;
@@ -10,7 +20,7 @@ function toDomain(row: {
   status: string;
   created_at: Date;
   updated_at: Date;
-  courier?: { name: string } | null;
+  courier?: CourierRow | null;
   restaurant?: { name: string } | null;
 }): CourierApplication {
   return {
@@ -19,6 +29,12 @@ function toDomain(row: {
     restaurantId: row.restaurant_id,
     status: row.status as ApplicationStatus,
     courierName: row.courier?.name ?? undefined,
+    courierEmail: row.courier?.email ?? undefined,
+    courierPhone: row.courier?.phone ?? null,
+    courierAvatar: row.courier?.avatar ?? null,
+    courierVehicle: row.courier?.vehicle ?? null,
+    courierDocumentId: row.courier?.document_id ?? null,
+    courierIsAvailable: row.courier?.is_available ?? false,
     restaurantName: row.restaurant?.name ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -26,7 +42,17 @@ function toDomain(row: {
 }
 
 const includeRelations = {
-  courier: { select: { name: true } },
+  courier: {
+    select: {
+      name: true,
+      email: true,
+      phone: true,
+      avatar: true,
+      vehicle: true,
+      document_id: true,
+      is_available: true,
+    },
+  },
   restaurant: { select: { name: true } },
 } as const;
 
