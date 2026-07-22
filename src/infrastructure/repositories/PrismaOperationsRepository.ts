@@ -213,10 +213,11 @@ export class PrismaOperationsRepository implements IOperationsRepository {
     return couriers.map((courier) => {
       const load = loadByCourier.get(courier.id) ?? { listo: 0, enCamino: 0 };
       const active = load.listo + load.enCamino;
-      // Disponible solo si no tiene pedidos Listo ni EnCamino.
-      // EnCamino = ya salió; Listo asignado = aún no libre para otros restaurantes.
-      const availability =
-        active === 0
+      const online = (courier as { is_available?: boolean }).is_available === true;
+      // Offline si apagó el turno; en_ruta si tiene pedidos activos; si no, disponible.
+      const availability = !online
+        ? CourierAvailability.OFFLINE
+        : active === 0
           ? CourierAvailability.DISPONIBLE
           : CourierAvailability.EN_RUTA;
 

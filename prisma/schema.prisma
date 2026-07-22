@@ -69,6 +69,8 @@ model User {
   /** Comuna de Cúcuta (clientes). */
   comuna        String?
   status        UserStatus @default(Pendiente)
+  /** Preferencia de turno del domiciliario (buscar pedidos). */
+  is_available  Boolean    @default(false)
   restaurant_id String?
   restaurant    Restaurant? @relation(fields: [restaurant_id], references: [id])
   orders        Order[]    @relation("CourierOrders")

@@ -6,6 +6,7 @@ import {
   applyController,
   reviewController,
   listController,
+  setAvailabilityController,
 } from '../controllers/courierApplicationsController';
 
 const authenticate = createAuthenticateMiddleware(container.tokenService);
@@ -17,6 +18,14 @@ courierApplicationsRouter.get(
   '/',
   authenticate,
   listController,
+);
+
+// Domiciliario cambia disponibilidad de turno (ANTES de /:id/review)
+courierApplicationsRouter.patch(
+  '/availability',
+  authenticate,
+  authorize(Role.DOMICILIARIO),
+  setAvailabilityController,
 );
 
 // Domiciliario se postula a un restaurante

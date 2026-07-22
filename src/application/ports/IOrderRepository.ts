@@ -36,6 +36,8 @@ export interface IOrderRepository {
   findByCode(code: string): Promise<Order | null>;
   /** Pedido activo más reciente cuyo teléfono coincide (dígitos). */
   findLatestActiveByPhone(phone: string): Promise<Order | null>;
+  /** Historial de pedidos del cliente por teléfono de perfil (más recientes primero). */
+  listByPhone(phone: string, limit?: number): Promise<OrderWithProductNames[]>;
   listByRestaurant(filters: ListRestaurantOrdersFilters): Promise<OrderWithProductNames[]>;
   updateStatus(id: string, status: OrderStatus): Promise<Order>;
   rejectPayment(id: string, observation: string): Promise<Order>;

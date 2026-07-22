@@ -453,13 +453,26 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
   }
 
   async listAvailableCouriers(restaurantId: string, batchSize: number, zone?: string | null) {
-    // Mismo universo que operaciones: domiciliarios Activos.
+    // Solo domiciliarios Activos CON contrato ACCEPTED en este restaurante.
     const couriers = await prisma.user.findMany({
       where: {
         role: 'domiciliario',
         status: 'Activo',
+        courier_applications: {
+          some: {
+            restaurant_id: restaurantId,
+            status: 'ACCEPTED',
+          },
+        },
       },
-      select: { id: true, name: true, vehicle: true, avatar: true, restaurant_id: true },
+      select: {
+        id: true,
+        name: true,
+        vehicle: true,
+        avatar: true,
+        restaurant_id: true,
+        is_available: true,
+      },
       orderBy: { name: 'asc' },
     });
 
@@ -499,8 +512,8 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
         zone,
         batchSize,
       });
-      const sedeRank =
-        c.restaurant_id === restaurantId ? 0 : c.restaurant_id == null ? 1 : 2;
+      // Disponibles de turno primero; luego capacidad.
+      const onlineRank = c.is_available ? 0 : 1;
 
       return {
         id: c.id,
@@ -509,18 +522,19 @@ export class PrismaAnalyticsRepository implements IAnalyticsRepository {
         vehicle: c.vehicle,
         averageRating: 4.8,
         activeOrders: assigned.length,
-        canTakeBatch: evaluation.canTake,
-        unavailableReason: evaluation.reason,
-        sedeRank,
+        canTakeBatch: evaluation.canTake && Boolean(c.is_available),
+        unavailableReason: !c.is_available
+          ? 'Domiciliario desconectado (fuera de turno)'
+          : evaluation.reason,
+        onlineRank,
       };
     });
 
     ranked.sort((a, b) => {
-      // Primero quienes sí pueden tomar el lote.
       if (a.canTakeBatch !== b.canTakeBatch) return a.canTakeBatch ? -1 : 1;
-      return a.sedeRank - b.sedeRank || a.name.localeCompare(b.name, 'es');
+      return a.onlineRank - b.onlineRank || a.name.localeCompare(b.name, 'es');
     });
 
-    return ranked.map(({ sedeRank: _sedeRank, ...courier }) => courier);
+    return ranked.map(({ onlineRank: _onlineRank, ...courier }) => courier);
   }
 }

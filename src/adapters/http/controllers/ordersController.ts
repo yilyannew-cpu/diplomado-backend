@@ -69,6 +69,22 @@ export async function myActiveOrderController(req: Request, res: Response, next:
   }
 }
 
+export async function myOrdersHistoryController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: 'UNAUTHORIZED', message: 'No autenticado' });
+      return;
+    }
+    const limitRaw = Number(req.query.limit);
+    const limit = Number.isFinite(limitRaw) ? limitRaw : 40;
+    const orders = await container.getMyOrdersHistoryUseCase.execute(userId, limit);
+    res.json(serializeOrders(orders));
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function listRestaurantOrdersController(req: Request, res: Response, next: NextFunction) {
   try {
     const restaurantId = param(req, 'restaurantId');

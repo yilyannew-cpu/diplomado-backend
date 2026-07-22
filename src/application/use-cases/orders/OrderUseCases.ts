@@ -1,8 +1,9 @@
 import { IOrderRepository, CreateOrderData, ListRestaurantOrdersFilters } from '../../ports/IOrderRepository';
 import { IProductRepository } from '../../ports/IProductRepository';
+import { ICourierApplicationRepository } from '../../ports';
 import { ProductWithCategory } from '../../../domain/entities/Product';
-import { OrderStatus } from '../../../domain/enums';
-import { NotFoundError, DomainError } from '../../../domain/errors';
+import { ApplicationStatus, OrderStatus } from '../../../domain/enums';
+import { NotFoundError, DomainError, ForbiddenError } from '../../../domain/errors';
 import {
   assertCourierCanTakeBatch,
   loadCourierActiveOrders,
@@ -12,6 +13,20 @@ import {
 const CATEGORY_ADDITIONS = 'Adiciones';
 const CATEGORY_SIDES = 'Acompañamientos';
 const CATEGORY_DRINKS = 'Bebidas';
+
+async function assertCourierAcceptedAtRestaurant(
+  appRepo: ICourierApplicationRepository,
+  courierId: string,
+  restaurantId: string,
+) {
+  const app = await appRepo.findExisting(courierId, restaurantId);
+  if (!app || app.status !== ApplicationStatus.ACCEPTED) {
+    throw new ForbiddenError(
+      'COURIER_NOT_HIRED',
+      'Este domiciliario no está contratado en tu restaurante.',
+    );
+  }
+}
 
 type SelectedExtra = {
   product_id: string;
@@ -235,11 +250,16 @@ export class UpdateOrderStatusUseCase {
 }
 
 export class AssignCourierUseCase {
-  constructor(private orderRepo: IOrderRepository) {}
+  constructor(
+    private orderRepo: IOrderRepository,
+    private appRepo: ICourierApplicationRepository,
+  ) {}
 
   async execute(orderId: string, courierId: string) {
     const order = await this.orderRepo.findById(orderId);
     if (!order) throw new NotFoundError('Pedido no encontrado');
+
+    await assertCourierAcceptedAtRestaurant(this.appRepo, courierId, order.restaurantId);
 
     const load = await loadCourierActiveOrders(courierId);
     assertCourierCanTakeBatch({
@@ -254,7 +274,10 @@ export class AssignCourierUseCase {
 }
 
 export class BatchAssignCourierUseCase {
-  constructor(private orderRepo: IOrderRepository) {}
+  constructor(
+    private orderRepo: IOrderRepository,
+    private appRepo: ICourierApplicationRepository,
+  ) {}
 
   async execute(orderIds: string[], courierId: string) {
     if (!orderIds.length) throw new DomainError('INVALID_ORDERS', 'Debe incluir al menos un pedido');
@@ -276,6 +299,8 @@ export class BatchAssignCourierUseCase {
         'El lote debe ser del mismo restaurante y la misma zona.',
       );
     }
+
+    await assertCourierAcceptedAtRestaurant(this.appRepo, courierId, restaurantId);
 
     const load = await loadCourierActiveOrders(courierId);
     assertCourierCanTakeBatch({
@@ -338,5 +363,21 @@ export class GetMyActiveOrderUseCase {
     const user = await this.userRepo.findById(userId);
     if (!user?.phone?.trim()) return null;
     return this.orderRepo.findLatestActiveByPhone(user.phone.trim());
+  }
+}
+
+/**
+ * Historial de pedidos del cliente autenticado (scoped por teléfono de perfil).
+ */
+export class GetMyOrdersHistoryUseCase {
+  constructor(
+    private orderRepo: IOrderRepository,
+    private userRepo: { findById(id: string): Promise<{ phone?: string | null } | null> },
+  ) {}
+
+  async execute(userId: string, limit = 40) {
+    const user = await this.userRepo.findById(userId);
+    if (!user?.phone?.trim()) return [];
+    return this.orderRepo.listByPhone(user.phone.trim(), limit);
   }
 }

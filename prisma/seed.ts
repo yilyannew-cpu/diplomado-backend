@@ -7,8 +7,10 @@ const PASSWORD = 'demo';
 
 async function wipeAll() {
   await prisma.userReport.deleteMany();
+  await prisma.deliveryReview.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.dispatch.deleteMany();
+  await prisma.courierApplication.deleteMany();
   await prisma.promotionProduct.deleteMany();
   await prisma.promotion.deleteMany();
   await prisma.review.deleteMany();
