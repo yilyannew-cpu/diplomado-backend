@@ -1,6 +1,6 @@
 import { IOrderRepository } from '../../ports/IOrderRepository';
-import { IUserRepository } from '../../ports';
-import { OrderStatus, Role, UserStatus } from '../../../domain/enums';
+import { IUserRepository, ICourierApplicationRepository } from '../../ports';
+import { ApplicationStatus, OrderStatus, Role, UserStatus } from '../../../domain/enums';
 import { DomainError, ForbiddenError, NotFoundError } from '../../../domain/errors';
 import {
   assertCourierCanTakeBatch,
@@ -18,11 +18,13 @@ export const COURIER_MAX_IN_ROUTE = MAX_ORDERS_PER_COURIER;
 /**
  * Domiciliario acepta un pedido Listo sin asignar.
  * Queda en Listo + delivery_person_id (esperando salir / "recogido").
+ * Requiere contrato ACCEPTED con el restaurante del pedido.
  */
 export class AcceptDeliveryUseCase {
   constructor(
     private orderRepo: IOrderRepository,
     private userRepo: IUserRepository,
+    private appRepo: ICourierApplicationRepository,
   ) {}
 
   async execute(orderId: string, courierId: string) {
@@ -50,10 +52,11 @@ export class AcceptDeliveryUseCase {
       throw new DomainError('ORDER_ALREADY_ASSIGNED', 'Este pedido ya tiene domiciliario asignado');
     }
 
-    if (courier.restaurantId && order.restaurantId !== courier.restaurantId) {
+    const app = await this.appRepo.findExisting(courierId, order.restaurantId);
+    if (!app || app.status !== ApplicationStatus.ACCEPTED) {
       throw new ForbiddenError(
         'WRONG_RESTAURANT',
-        'Este pedido pertenece a otro restaurante',
+        'No estás contratado en el restaurante de este pedido.',
       );
     }
 
@@ -107,13 +110,13 @@ export class ListMyCourierOrdersUseCase {
 }
 
 /**
- * Disponibles: Listo sin asignar.
- * Si el courier tiene restaurantId, filtra esa sede.
+ * Disponibles: Listo sin asignar, solo de restaurantes donde el domi está ACCEPTED.
  */
 export class ListCourierAvailableDeliveriesUseCase {
   constructor(
     private orderRepo: IOrderRepository,
     private userRepo: IUserRepository,
+    private appRepo: ICourierApplicationRepository,
   ) {}
 
   async execute(courierId: string, restaurantIdQuery?: string) {
@@ -122,10 +125,22 @@ export class ListCourierAvailableDeliveriesUseCase {
       throw new ForbiddenError('NOT_COURIER', 'Solo domiciliarios pueden ver la cola');
     }
 
-    const restaurantId =
-      restaurantIdQuery ?? courier.restaurantId ?? undefined;
+    const apps = await this.appRepo.listByCourier(courierId);
+    const acceptedRestaurantIds = apps
+      .filter((a) => a.status === ApplicationStatus.ACCEPTED)
+      .map((a) => a.restaurantId);
 
-    return this.orderRepo.listAvailableForDelivery(restaurantId);
+    if (acceptedRestaurantIds.length === 0) return [];
+
+    if (restaurantIdQuery) {
+      if (!acceptedRestaurantIds.includes(restaurantIdQuery)) return [];
+      return this.orderRepo.listAvailableForDelivery(restaurantIdQuery);
+    }
+
+    const batches = await Promise.all(
+      acceptedRestaurantIds.map((id) => this.orderRepo.listAvailableForDelivery(id)),
+    );
+    return batches.flat();
   }
 }
 

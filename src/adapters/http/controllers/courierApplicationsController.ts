@@ -23,7 +23,10 @@ export async function reviewController(req: Request, res: Response, next: NextFu
   try {
     const id = paramId(req);
     const { status } = req.body as { status: ApplicationStatus };
-    const application = await container.reviewApplicationUseCase.execute(id, status);
+    const actor = req.user
+      ? { id: req.user.id, role: String(req.user.role) }
+      : undefined;
+    const application = await container.reviewApplicationUseCase.execute(id, status, actor);
     res.json(application);
   } catch (error) {
     next(error);

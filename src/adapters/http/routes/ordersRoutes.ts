@@ -18,6 +18,7 @@ import {
   createOrderController,
   trackOrderController,
   myActiveOrderController,
+  myOrdersHistoryController,
   listRestaurantOrdersController,
   updateOrderStatusController,
   rejectPaymentController,
@@ -47,6 +48,7 @@ const clientOnly = [authenticate, authorize(Role.CLIENTE)];
 
 router.get('/', ...superadminOnly, validate(listOrdersQuerySchema, 'query'), listOrdersController);
 router.get('/my-active', ...clientOnly, myActiveOrderController);
+router.get('/my-history', ...clientOnly, myOrdersHistoryController);
 router.get('/track/:code', validate(orderTrackParamSchema, 'params'), trackOrderController);
 router.post('/', validate(createOrderSchema), createOrderController);
 
