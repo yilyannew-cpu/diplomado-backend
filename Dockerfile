@@ -35,6 +35,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY prisma ./prisma
 COPY scripts/ensure-catalogs.cjs ./scripts/ensure-catalogs.cjs
+COPY scripts/ensure-superadmin.cjs ./scripts/ensure-superadmin.cjs
 RUN npx prisma generate \
   && mkdir -p uploads \
   && chown -R node:node /app

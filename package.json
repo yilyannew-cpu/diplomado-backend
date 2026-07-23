@@ -17,6 +17,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
     "catalog:seed": "node scripts/ensure-catalogs.cjs",
+    "superadmin:seed": "node scripts/ensure-superadmin.cjs",
     "local": "node scripts/local.cjs",
     "local:dev": "node scripts/local.cjs --dev",
     "db:up": "docker compose up -d",
