@@ -71,6 +71,12 @@ model User {
   status        UserStatus @default(Pendiente)
   /** Preferencia de turno del domiciliario (buscar pedidos). */
   is_available  Boolean    @default(false)
+  /** Código de catálogo `vehicle_types.code` (Moto, Bici, …). */
+  vehicle_type_code       String?
+  vehicle_plate           String?
+  vehicle_description     String?
+  emergency_contact_name  String?
+  emergency_contact_phone String?
   restaurant_id String?
   restaurant    Restaurant? @relation(fields: [restaurant_id], references: [id])
   orders        Order[]    @relation("CourierOrders")
@@ -333,5 +339,41 @@ model CourierApplication {
 
   @@unique([courier_id, restaurant_id])
   @@map("courier_applications")
+}
+
+/** Catálogo de comunas de servicio (Cúcuta). */
+model Comuna {
+  id       String  @id @default(uuid())
+  code     String  @unique
+  label    String
+  position Int     @default(0)
+  active   Boolean @default(true)
+
+  @@map("comunas")
+}
+
+/** Catálogo de tipos de vehículo para domiciliarios. */
+model VehicleTypeCatalog {
+  id             String  @id @default(uuid())
+  code           String  @unique
+  label          String
+  position       Int     @default(0)
+  active         Boolean @default(true)
+  requires_plate Boolean @default(true)
+
+  @@map("vehicle_types")
+}
+
+/**
+ * Plantillas de categorías de menú.
+ * Se usan para sembrar Category por restaurante y para selects globales.
+ */
+model MenuCategoryTemplate {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  position Int     @default(0)
+  active   Boolean @default(true)
+
+  @@map("menu_category_templates")
 }
 

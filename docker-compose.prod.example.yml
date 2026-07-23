@@ -1,0 +1,45 @@
+# =============================================================================
+# Despliegue infraestructura — USAR ESTE ARCHIVO
+# No usar `docker run`: este compose ya trae volumen uploads, healthcheck y env.
+#
+#   docker compose -f docker-compose.prod.example.yml up -d --build
+# =============================================================================
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ffcore-api:latest
+    container_name: ffcore-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      # Obligatorio — Postgres del campus (o servicio postgres aparte)
+      DATABASE_URL: ${DATABASE_URL}
+      # Misma URL o conexión directa si usan pooler
+      DIRECT_URL: ${DIRECT_URL:-${DATABASE_URL}}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      # Orígenes del front (separados por coma)
+      CORS_ORIGIN: ${CORS_ORIGIN}
+    volumes:
+      # Persistencia de imágenes subidas
+      - ffcore_uploads:/app/uploads
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  ffcore_uploads:
