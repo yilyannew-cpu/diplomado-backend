@@ -16,6 +16,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
+    "catalog:seed": "node scripts/ensure-catalogs.cjs",
     "local": "node scripts/local.cjs",
     "local:dev": "node scripts/local.cjs --dev",
     "db:up": "docker compose up -d",
@@ -25,7 +26,12 @@
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
-  "keywords": ["ffcore", "api", "express", "typescript"],
+  "keywords": [
+    "ffcore",
+    "api",
+    "express",
+    "typescript"
+  ],
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^6.9.0",
@@ -37,6 +43,7 @@
     "multer": "^2.2.0",
     "prisma": "^6.9.0",
     "socket.io": "^4.8.3",
+    "winston": "^3.19.0",
     "zod": "^3.25.67"
   },
   "devDependencies": {

@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { Role, UserStatus, OrderStatus } from '../../../domain/enums';
-import { isCucutaComuna } from '../../../domain/constants/cucutaComunas';
 
 const passwordSchema = z
   .string()
@@ -39,10 +38,7 @@ export const registerClientSchema = z
     password: passwordSchema,
     password_confirmation: z.string(),
     phone: phoneSchema,
-    comuna: z
-      .string()
-      .min(1, 'Selecciona una comuna')
-      .refine(isCucutaComuna, { message: 'Selecciona una comuna válida' }),
+    comuna: z.string().min(1, 'Selecciona una comuna'),
   })
   .refine((data) => data.password === data.password_confirmation, {
     message: 'Las contraseñas no coinciden',
@@ -67,7 +63,7 @@ export const registerRestaurantSchema = z
     path: ['password_confirmation'],
   });
 
-const vehicleTypeEnum = z.enum(['Moto', 'Bici', 'Automóvil', 'Otro']);
+const vehicleTypeSchema = z.string().min(1, 'Selecciona un tipo de vehículo');
 
 export const registerCourierSchema = z
   .object({
@@ -77,7 +73,7 @@ export const registerCourierSchema = z
     password_confirmation: z.string(),
     phone: phoneSchema,
     document_id: z.string().min(6).max(20),
-    vehicle_type: vehicleTypeEnum,
+    vehicle_type: vehicleTypeSchema,
     vehicle_plate: z.string().min(1).max(20),
     vehicle_description: z.string().max(100).optional(),
   })
@@ -115,11 +111,7 @@ export const updateProfileSchema = z
   .object({
     email: z.string().email('Email inválido').optional(),
     phone: phoneSchema.optional(),
-    comuna: z
-      .string()
-      .min(1, 'Selecciona una comuna')
-      .refine(isCucutaComuna, { message: 'Selecciona una comuna válida' })
-      .optional(),
+    comuna: z.string().min(1, 'Selecciona una comuna').optional(),
     avatar: imageUrlSchema.optional(),
   })
   .refine(

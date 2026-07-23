@@ -1,0 +1,25 @@
+# =============================================================================
+# FFCore API — SOLO desarrollo local (`make fire` / docker-compose.local.yml)
+# Producción usa el Dockerfile raíz (multi-stage + node dist/server.js).
+# =============================================================================
+FROM node:20-bookworm-slim
+
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY package.json package-lock.json* ./
+RUN npm install
+
+COPY prisma ./prisma
+RUN npx prisma generate
+
+COPY . .
+
+EXPOSE 3000
+
+# generate en cada arranque: el volumen api_node_modules puede quedar
+# desfasado del schema montado.
+CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && node scripts/ensure-catalogs.cjs && npm run dev"]

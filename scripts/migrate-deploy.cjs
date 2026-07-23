@@ -184,3 +184,17 @@ function runMigrate() {
 }
 
 runMigrate();
+
+// Catálogos de selects (idempotente) — no espera a `prisma db seed` completo
+try {
+  console.log('[migrate] Sembrando catálogos (comunas / vehículos / categorías)...');
+  execSync('node scripts/ensure-catalogs.cjs', {
+    encoding: 'utf8',
+    shell: true,
+    env: process.env,
+    stdio: 'inherit',
+  });
+} catch (e) {
+  console.error('[migrate] Falló el seed de catálogos:', e.message ?? e);
+  process.exit(1);
+}

@@ -9,11 +9,11 @@ export class JwtTokenService implements ITokenService {
 
   constructor() {
     const secret = process.env.JWT_SECRET;
-    if (!secret || secret.length < 32) {
-      throw new Error('JWT_SECRET debe tener al menos 32 caracteres');
+    if (!secret) {
+      throw new Error('JWT_SECRET es requerido');
     }
     this.secret = secret;
-    this.expiresIn = process.env.JWT_EXPIRES_IN ?? '8h';
+    this.expiresIn = process.env.JWT_EXPIRES_IN ?? '15m';
   }
 
   sign(payload: TokenPayload): string {

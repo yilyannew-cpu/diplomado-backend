@@ -26,7 +26,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: ffcore-local-api
     restart: unless-stopped
     ports:
@@ -36,8 +36,8 @@ services:
       PORT: "3000"
       DATABASE_URL: postgresql://ffcore:ffcore@postgres:5432/ffcore?sslmode=disable
       DIRECT_URL: postgresql://ffcore:ffcore@postgres:5432/ffcore?sslmode=disable
-      JWT_SECRET: local-dev-jwt-secret-min-32-chars!!
-      JWT_EXPIRES_IN: 8h
+      JWT_SECRET: ffcore-jwt-secret
+      JWT_EXPIRES_IN: 15m
       CORS_ORIGIN: http://localhost:5173,http://localhost:8081
     volumes:
       # Código en vivo → hot reload con tsx watch

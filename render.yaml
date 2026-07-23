@@ -10,7 +10,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: JWT_EXPIRES_IN
-        value: 8h
+        value: 15m
       - key: DATABASE_URL
         sync: false
       - key: DIRECT_URL
