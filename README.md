@@ -38,10 +38,37 @@ Ese archivo (`docker-compose.prod.example.yml`) ya incluye:
 
 ### Al iniciar el contenedor
 
-1. Aplica migraciones Prisma
+1. Aplica migraciones Prisma (`prisma/migrations/` — hay 15 en el repo)
 2. Siembra catálogos (comunas, vehículos, categorías de menú)
 3. Arranca la API en `0.0.0.0:3000`
+
+> El arranque **no** crea el superadmin. Hay que hacerlo una vez (ver abajo).
 
 ### Verificación
 
 - Health: `GET /api/v1/health`
+
+### Superadmin (una sola vez)
+
+Migraciones ≠ seed de usuario.
+
+| Concepto | Comando | Qué hace |
+|----------|---------|----------|
+| Migraciones | `npx prisma migrate deploy` | Crea tablas (ya corre al arrancar) |
+| Catálogos | `node scripts/ensure-catalogs.cjs` | Comunas/vehículos (ya corre al arrancar) |
+| Superadmin | `node scripts/ensure-superadmin.cjs` | Crea `super@ffcore.co` / `demo` |
+
+```bash
+docker ps
+docker exec -it NOMBRE_CONTENEDOR node scripts/ensure-superadmin.cjs
+```
+
+Si dice que no existe la tabla `users`, las migraciones no se aplicaron:
+
+```bash
+docker exec -it NOMBRE_CONTENEDOR npx prisma migrate deploy
+docker exec -it NOMBRE_CONTENEDOR ls prisma/migrations
+docker exec -it NOMBRE_CONTENEDOR node scripts/ensure-superadmin.cjs
+```
+
+Login: `super@ffcore.co` / `demo` en `/login/gobernanza`
