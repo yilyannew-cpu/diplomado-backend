@@ -110,6 +110,12 @@ import {
   ListApplicationsUseCase,
 } from './application/use-cases/courier-applications/CourierApplicationUseCases';
 import { SetCourierAvailabilityUseCase } from './application/use-cases/courier-applications/SetCourierAvailabilityUseCase';
+import { PrismaCatalogRepository } from './infrastructure/repositories/PrismaCatalogRepository';
+import {
+  ListComunasUseCase,
+  ListVehicleTypesUseCase,
+  ListMenuCategoryTemplatesUseCase,
+} from './application/use-cases/catalog/CatalogUseCases';
 
 const userRepository = new PrismaUserRepository();
 const restaurantRepository = new PrismaRestaurantRepository();
@@ -121,6 +127,7 @@ const analyticsRepository = new PrismaAnalyticsRepository();
 const operationsRepository = new PrismaOperationsRepository();
 const userReportRepository = new PrismaUserReportRepository();
 const courierApplicationRepository = new PrismaCourierApplicationRepository();
+const catalogRepository = new PrismaCatalogRepository();
 const hashService = new BcryptHashService();
 const tokenService = new JwtTokenService();
 
@@ -132,19 +139,28 @@ export const container = {
   orderRepository,
   promotionRepository,
   analyticsRepository,
+  catalogRepository,
   hashService,
   tokenService,
+  listComunasUseCase: new ListComunasUseCase(catalogRepository),
+  listVehicleTypesUseCase: new ListVehicleTypesUseCase(catalogRepository),
+  listMenuCategoryTemplatesUseCase: new ListMenuCategoryTemplatesUseCase(catalogRepository),
   loginUseCase: new LoginUseCase(userRepository, hashService, tokenService),
   getMeUseCase: new GetMeUseCase(userRepository),
   logoutUseCase: new LogoutUseCase(),
-  registerClientUseCase: new RegisterClientUseCase(userRepository, hashService, tokenService),
+  registerClientUseCase: new RegisterClientUseCase(
+    userRepository,
+    hashService,
+    tokenService,
+    catalogRepository,
+  ),
   registerRestaurantUseCase: new RegisterRestaurantUseCase(
     restaurantRepository,
     hashService,
     (email) => userRepository.emailExists(email)
   ),
-  registerCourierUseCase: new RegisterCourierUseCase(userRepository, hashService),
-  updateProfileUseCase: new UpdateProfileUseCase(userRepository),
+  registerCourierUseCase: new RegisterCourierUseCase(userRepository, hashService, catalogRepository),
+  updateProfileUseCase: new UpdateProfileUseCase(userRepository, catalogRepository),
   changePasswordUseCase: new ChangePasswordUseCase(userRepository, hashService),
   createUserUseCase: new CreateUserUseCase(userRepository, hashService),
   approveUserUseCase: new ApproveUserUseCase(userRepository, restaurantRepository),

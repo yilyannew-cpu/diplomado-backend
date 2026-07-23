@@ -1,4 +1,7 @@
-/** Comunas oficiales de Cúcuta (10). */
+/**
+ * @deprecated Preferir catálogo en BD: GET /api/v1/catalog/comunas
+ * Se mantiene solo como referencia histórica; la validación usa PrismaCatalogRepository.
+ */
 export const CUCUTA_COMUNAS = [
   'Centro',
   'Centro Oriental',

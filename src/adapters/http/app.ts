@@ -13,7 +13,8 @@ import { uploadsRouter } from './routes/uploadsRoutes';
 import { couriersRouter } from './routes/couriersRoutes';
 import { courierApplicationsRouter } from './routes/courierApplicationsRoutes';
 import { reportsRouter } from './routes/reportsRoutes';
-import { errorHandler } from './middleware/errorHandler';
+import { catalogRouter } from './routes/catalogRoutes';
+import { handleError } from '../../middlewares/handleError';
 import { UPLOAD_DIR } from '../../infrastructure/services/UploadService';
 
 export function createApp() {
@@ -61,6 +62,7 @@ export function createApp() {
   });
 
   app.use('/api/v1/auth', authRouter);
+  app.use('/api/v1/catalog', catalogRouter);
   app.use('/api/v1/users', usersRouter);
   app.use('/api/v1/metrics', metricsRouter);
   app.use('/api/v1/system', systemRouter);
@@ -73,7 +75,8 @@ export function createApp() {
   app.use('/api/v1/orders', ordersRouter);
   app.use('/api/v1/uploads', uploadsRouter);
 
-  app.use(errorHandler);
+  // Debe ir al final: captura errores de rutas/middlewares async vía next(err)
+  app.use(handleError);
 
   return app;
 }

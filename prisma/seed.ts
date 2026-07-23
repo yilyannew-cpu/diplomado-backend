@@ -1,5 +1,6 @@
 import { PrismaClient, Role, UserStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { seedCatalogs } from './seedCatalogs';
 
 const prisma = new PrismaClient();
 
@@ -23,11 +24,21 @@ async function wipeAll() {
   await prisma.category.deleteMany();
   await prisma.user.deleteMany();
   await prisma.restaurant.deleteMany();
+  // Catálogos no se borran: se re-siembran abajo
 }
 
 async function main() {
   console.log('Borrando todos los datos...');
   await wipeAll();
+
+  console.log('Sembrando catálogos (comunas, vehículos, categorías)...');
+  await seedCatalogs(prisma);
+
+  const [comunas, vehicles, categories] = await Promise.all([
+    prisma.comuna.count(),
+    prisma.vehicleTypeCatalog.count(),
+    prisma.menuCategoryTemplate.count(),
+  ]);
 
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
 
@@ -44,10 +55,16 @@ async function main() {
   });
 
   console.log('');
-  console.log('Base de datos vacía — solo superadmin');
+  console.log('Base lista — catálogos + superadmin');
   console.log('────────────────────────────────────');
-  console.log('Email:    super@ffcore.co');
-  console.log('Password: demo');
+  console.log(`Comunas:     ${comunas}`);
+  console.log(`Vehículos:   ${vehicles}`);
+  console.log(`Categorías:  ${categories}`);
+  console.log('Email:       super@ffcore.co');
+  console.log('Password:    demo');
+  console.log('GET /api/v1/catalog/comunas');
+  console.log('GET /api/v1/catalog/vehicle-types');
+  console.log('GET /api/v1/catalog/menu-category-templates');
 }
 
 main()

@@ -5,7 +5,7 @@
 
 COMPOSE := docker compose -f docker-compose.local.yml
 
-.PHONY: fire up down restart logs rebuild seed shell ps help
+.PHONY: fire up down restart logs rebuild seed catalogs shell ps help
 
 ## Levanta Postgres + API en local (build si hace falta)
 fire: up
@@ -51,9 +51,13 @@ logs:
 ps:
 	$(COMPOSE) ps
 
-## Seed (superadmin demo)
+## Seed completo (wipe + catálogos + superadmin)
 seed:
 	$(COMPOSE) exec api npx prisma db seed
+
+## Solo catálogos de selects (idempotente, no borra datos)
+catalogs:
+	$(COMPOSE) exec api node scripts/ensure-catalogs.cjs
 
 ## Shell dentro del contenedor API
 shell:
@@ -65,7 +69,8 @@ help:
 	@echo "  make down     → parar contenedores"
 	@echo "  make clean    → parar y borrar datos de BD local"
 	@echo "  make logs     → ver logs de la API"
-	@echo "  make seed     → seed (super@ffcore.co / demo)"
+	@echo "  make seed     → wipe + catálogos + super@ffcore.co / demo"
+	@echo "  make catalogs → solo catálogos de selects (idempotente)"
 	@echo "  make shell    → entrar al contenedor API"
 	@echo "  make rebuild  → rebuild sin caché"
 	@echo ""

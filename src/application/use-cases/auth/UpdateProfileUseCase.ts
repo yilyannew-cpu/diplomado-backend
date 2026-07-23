@@ -1,7 +1,8 @@
 import { IUserRepository } from '../../ports';
-import { ConflictError, ForbiddenError, NotFoundError } from '../../../domain/errors';
+import { ConflictError, DomainError, ForbiddenError, NotFoundError } from '../../../domain/errors';
 import { Role } from '../../../domain/enums';
 import { toPublicUser } from '../../../domain/entities/User';
+import { PrismaCatalogRepository } from '../../../infrastructure/repositories/PrismaCatalogRepository';
 
 export interface UpdateProfileInput {
   email?: string;
@@ -11,7 +12,10 @@ export interface UpdateProfileInput {
 }
 
 export class UpdateProfileUseCase {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly catalogRepository: PrismaCatalogRepository,
+  ) {}
 
   async execute(userId: string, role: Role, input: UpdateProfileInput) {
     if (role === Role.ADMIN && input.avatar === undefined) {
@@ -43,10 +47,20 @@ export class UpdateProfileUseCase {
       }
     }
 
+    let comuna = input.comuna;
+    if (comuna !== undefined) {
+      comuna = comuna.trim();
+      if (!(await this.catalogRepository.isValidComunaCode(comuna))) {
+        throw new DomainError('VALIDATION_ERROR', 'Selecciona una comuna válida', 400, [
+          { field: 'comuna', message: 'Selecciona una comuna válida' },
+        ]);
+      }
+    }
+
     const updated = await this.userRepository.update(userId, {
       ...(input.email !== undefined && { email: input.email.toLowerCase().trim() }),
       ...(input.phone !== undefined && { phone: input.phone.trim() }),
-      ...(input.comuna !== undefined && { comuna: input.comuna.trim() }),
+      ...(comuna !== undefined && { comuna }),
       ...(input.avatar !== undefined && { avatar: input.avatar }),
     });
 

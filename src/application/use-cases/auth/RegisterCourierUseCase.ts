@@ -1,6 +1,7 @@
 import { IUserRepository, IHashService } from '../../ports';
-import { ConflictError } from '../../../domain/errors';
+import { ConflictError, DomainError } from '../../../domain/errors';
 import { Role, UserStatus } from '../../../domain/enums';
+import { PrismaCatalogRepository } from '../../../infrastructure/repositories/PrismaCatalogRepository';
 
 export interface RegisterCourierInput {
   name: string;
@@ -16,7 +17,8 @@ export interface RegisterCourierInput {
 export class RegisterCourierUseCase {
   constructor(
     private readonly userRepository: IUserRepository,
-    private readonly hashService: IHashService
+    private readonly hashService: IHashService,
+    private readonly catalogRepository: PrismaCatalogRepository,
   ) {}
 
   private buildVehicleString(input: RegisterCourierInput): string {
@@ -26,6 +28,13 @@ export class RegisterCourierUseCase {
 
   async execute(input: RegisterCourierInput) {
     const email = input.email.toLowerCase().trim();
+    const vehicleType = input.vehicleType.trim();
+
+    if (!(await this.catalogRepository.isValidVehicleTypeCode(vehicleType))) {
+      throw new DomainError('VALIDATION_ERROR', 'Selecciona un tipo de vehículo válido', 400, [
+        { field: 'vehicle_type', message: 'Selecciona un tipo de vehículo válido' },
+      ]);
+    }
 
     if (await this.userRepository.emailExists(email)) {
       throw new ConflictError('El email ya está registrado', [
@@ -42,7 +51,7 @@ export class RegisterCourierUseCase {
       role: Role.DOMICILIARIO,
       phone: input.phone,
       documentId: input.documentId.trim(),
-      vehicle: this.buildVehicleString(input),
+      vehicle: this.buildVehicleString({ ...input, vehicleType }),
       status: UserStatus.PENDIENTE,
     });
 
